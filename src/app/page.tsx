@@ -1,103 +1,147 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState } from "react";
+import { PhoneCall, Search, FileText, Settings } from "lucide-react";
+import { Sidebar } from "@/components/Sidebar";
+import { ToolsMenu } from "@/components/ToolsMenu";
+import { SearchResults } from "@/components/SearchResults";
+import { InputBar } from "@/components/InputBar";
+import { DragDropWrapper } from "@/components/DragDropWrapper";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { useSearch } from "@/hooks/useSearch";
+
+const tabs = [
+  { id: "chat", label: "Chat", icon: <PhoneCall size={18} /> },
+  { id: "history", label: "History", icon: <Search size={18} /> },
+  { id: "policies", label: "Policies", icon: <FileText size={18} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={18} /> },
+];
+
+export default function HomePage() {
+  const [active, setActive] = useState("chat");
+  const [text, setText] = useState("");
+  const [toolsOpen, setToolsOpen] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
+
+  // Custom hooks
+  const { searchResults, isSearching, thinkingProcess, searchDocs } = useSearch();
+  const {
+    attachedFiles,
+    isUploading,
+    uploadFiles,
+    addFiles,
+    removeFile,
+    clearAllFiles,
+    updateFilesWithRemotePaths
+  } = useFileUpload();
+
+  // Handle search with text input
+  const handleSearch = () => {
+    if (text.trim() && !isSearching) {
+      searchDocs(text);
+      setText('');
+      clearAllFiles();
+    }
+  };
+
+  // Handle click to open tools menu
+  const handleClick = (e: React.MouseEvent) => {
+    setClickPosition({ x: e.clientX, y: e.clientY });
+    setToolsOpen(true);
+  };
+
+  // Drag and drop handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      console.log('Dropped files:', files.map(f => f.name));
+      
+      // Add all files to the attached files list
+      addFiles(files);
+      
+      // Upload all files to backend in one request
+      try {
+        const result = await uploadFiles(files);
+        console.log('Uploaded files:', result);
+        
+        // Update all files with their remote paths
+        updateFilesWithRemotePaths(files, result.results);
+        
+        console.log('Files uploaded and stored successfully');
+      } catch (error) {
+        console.error('Failed to upload files:', error);
+        // Optionally show user feedback here
+      }
+    }
+  };
+
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="h-screen grid grid-cols-[280px_1fr] bg-black">
+      <Sidebar tabs={tabs} active={active} onSelect={setActive} />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <DragDropWrapper
+        isDragOver={isDragOver}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {/* Top bar */}
+        <div className="h-14 border-b flex items-center px-4 justify-between">
+          <div className="font-semibold">{tabs.find(t => t.id === active)?.label}</div>
+          <div className="text-xs text-gray-500">NEXT_PUBLIC_API_BASE</div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+
+        {/* Main content */}
+        <div 
+          className="flex-1 overflow-auto p-6 relative" 
+          style={{ backgroundColor: '#212121' }}
+          onClick={handleClick}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+          <SearchResults 
+            searchResults={searchResults} 
+            thinkingProcess={thinkingProcess} 
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+          
+          <InputBar
+            text={text}
+            setText={setText}
+            onSend={handleSearch}
+            isSearching={isSearching}
+            attachedFiles={attachedFiles}
+            isUploading={isUploading}
+            onRemoveFile={removeFile}
+            onClearAllFiles={clearAllFiles}
+            openTools={(open:boolean) => setToolsOpen(open)}
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+        </div>
+
+        {/* Tools palette */}
+        {toolsOpen && (
+          <ToolsMenu 
+            onClose={() => setToolsOpen(false)} 
+            onPick={(tool) => {
+              setToolsOpen(false);
+              // do something with selected tool
+              console.log("Picked tool:", tool);
+            }}
+            clickPosition={clickPosition}
           />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        )}
+      </DragDropWrapper>
     </div>
   );
 }
