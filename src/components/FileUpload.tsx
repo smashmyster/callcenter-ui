@@ -5,14 +5,13 @@ interface FileUploadProps {
   attachedFiles: AttachedFile[];
   isUploading: boolean;
   onRemoveFile: (index: number) => void;
-  onClearAllFiles: () => void;
+  onClearAllFiles?: () => void;
 }
 
 export const FileUpload = ({ 
   attachedFiles, 
   isUploading, 
   onRemoveFile, 
-  onClearAllFiles 
 }: FileUploadProps) => {
   if (attachedFiles.length === 0) return null;
 

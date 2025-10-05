@@ -17,7 +17,7 @@ export const useFileUpload = () => {
       const formData = new FormData();
       formData.append('file', file);
       
-      const response = await fetch(`http://localhost:8787/speech/uploadFile`, {
+      const response = await fetch(`https://api-pilot.balanceapp.co.za/speech/uploadFile`, {
         method: 'POST',
         body: formData
       });
@@ -46,7 +46,7 @@ export const useFileUpload = () => {
         formData.append('files', file);
       });
       
-      const response = await fetch(`http://localhost:8787/speech/uploadFiles`, {
+      const response = await fetch(`https://api-pilot.balanceapp.co.za/speech/uploadFiles`, {
         method: 'POST',
         body: formData
       });
@@ -94,10 +94,10 @@ export const useFileUpload = () => {
     );
   };
 
-  // Update multiple files with remote paths
+  // @typescript-eslint/no-explicit-any
   const updateFilesWithRemotePaths = (files: File[], results: any[]) => {
     setAttachedFiles(prev => 
-      prev.map((f, index) => {
+      prev.map((f) => {
         const fileIndex = files.findIndex(file => file === f.file);
         if (fileIndex !== -1 && results && results[fileIndex]) {
           return { ...f, remotePath: results[fileIndex].filePath };

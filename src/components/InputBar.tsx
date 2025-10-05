@@ -11,7 +11,7 @@ interface InputBarProps {
   isUploading: boolean;
   onRemoveFile: (index: number) => void;
   onClearAllFiles: () => void;
-  openTools: (open: boolean) => void;
+  openTools: (open: React.MouseEvent) => void;
 }
 
 export const InputBar = ({
@@ -43,9 +43,8 @@ export const InputBar = ({
 
   return (
     <div className="max-w-[60vw] mx-auto absolute bottom-6 left-0 right-0 px-6">
-      <div className={`flex flex-col bg-gray-800 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 ${
-        attachedFiles.length > 0 ? 'py-3' : (text.split('\n').length > 1 ? 'h-auto min-h-[60px]' : 'h-12')
-      }`}>
+      <div className={`flex flex-col bg-gray-800 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 ${attachedFiles.length > 0 ? 'py-3' : (text.split('\n').length > 1 ? 'h-auto min-h-[60px]' : 'h-12')
+        }`}>
         {/* File attachments display */}
         <FileUpload
           attachedFiles={attachedFiles}
@@ -53,14 +52,12 @@ export const InputBar = ({
           onRemoveFile={onRemoveFile}
           onClearAllFiles={onClearAllFiles}
         />
-        
+
         <div className={`flex items-center ${attachedFiles.length > 0 ? 'mt-2' : ''}`}>
           {/* Left button - Plus */}
           <button
-            onClick={() => {
-              console.log('Add attachment');
-              openTools(true);
-            }}
+            onClick={openTools}
+
             className="p-3 text-white hover:bg-gray-700 transition-colors flex-shrink-0"
             aria-label="Add attachment"
           >

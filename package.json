@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "clsx": "^2.1.1",
+    "express": "^5.1.0",
+    "http": "^0.0.1-security",
     "lucide-react": "^0.544.0",
     "next": "15.5.4",
     "react": "19.1.0",
