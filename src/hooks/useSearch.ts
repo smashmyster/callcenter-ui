@@ -15,7 +15,7 @@ export const useSearch = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [thinkingProcess, setThinkingProcess] = useState<string[]>([]);
 
-  const searchDocs = async (query: string) => {
+  const searchDocs = async (query: string, conversationId?: string, fileIds?: string[]) => {
     if (!query.trim()) return;
 
     setIsSearching(true);
@@ -49,14 +49,15 @@ export const useSearch = () => {
     }, 800);
 
     try {
-      const response = await fetch(`http://localhost:8787/docs/search`, {
+      const response = await fetch(`http://localhost:8787/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           query: query,
-          size: 5
+          conversationId: conversationId,
+          fileNames: fileIds || []
         })
       });
 
@@ -66,7 +67,6 @@ export const useSearch = () => {
 
       const result = await response.json();
       console.log('Search results:', result);
-      setSearchResults(prev => [...prev, result]);
       
       // Auto-scroll to bottom when result arrives
       setTimeout(() => {
@@ -75,6 +75,8 @@ export const useSearch = () => {
           container.scrollTop = container.scrollHeight;
         }
       }, 100);
+      
+      return result;
       
     } catch (error) {
       console.error('Search error:', error);

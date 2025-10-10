@@ -4,6 +4,7 @@ export interface AttachedFile {
   file: File;
   path: string;
   remotePath?: string;
+  id?: string; // File upload ID from server
 }
 
 export const useFileUpload = () => {
@@ -11,13 +12,19 @@ export const useFileUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
 
   // Upload single file
-  const uploadFile = async (file: File) => {
+  const uploadFile = async (file: File, conversationId?: string, messageId?: string) => {
     setIsUploading(true);
     try {
       const formData = new FormData();
       formData.append('file', file);
+      if (conversationId) {
+        formData.append('conversationId', conversationId);
+      }
+      if (messageId) {
+        formData.append('messageId', messageId);
+      }
       
-      const response = await fetch(`https://api-pilot.balanceapp.co.za/speech/uploadFile`, {
+      const response = await fetch(`http://localhost:8787/speech/uploadFile`, {
         method: 'POST',
         body: formData
       });
@@ -27,7 +34,6 @@ export const useFileUpload = () => {
       }
       
       const result = await response.json();
-      console.log('File uploaded successfully:', result);
       return result;
     } catch (error) {
       console.error('Upload error:', error);
@@ -46,7 +52,7 @@ export const useFileUpload = () => {
         formData.append('files', file);
       });
       
-      const response = await fetch(`https://api-pilot.balanceapp.co.za/speech/uploadFiles`, {
+      const response = await fetch(`http://localhost:8787/speech/uploadFiles`, {
         method: 'POST',
         body: formData
       });
@@ -56,7 +62,6 @@ export const useFileUpload = () => {
       }
       
       const result = await response.json();
-      console.log('Files uploaded successfully:', result);
       return result;
     } catch (error) {
       console.error('Upload error:', error);
@@ -67,8 +72,18 @@ export const useFileUpload = () => {
   };
 
   // Add files to the list
-  const addFiles = (files: File[]) => {
+  const addFiles = async (files: File[], conversationId?: string, messageId?: string) => {
     const newFiles = files.map(file => ({ file, path: file.name }));
+    const result = await uploadFile(files[0], conversationId, messageId);
+    console.log("files", files);
+    console.log("result", result);
+    
+    // Update the first file with the ID from the server response
+    if (result && result.id) {
+      newFiles[0].id = result.id;
+      newFiles[0].remotePath = result.externalPath;
+    }
+    
     setAttachedFiles(prev => [...prev, ...newFiles]);
     return newFiles;
   };
@@ -81,6 +96,13 @@ export const useFileUpload = () => {
   // Clear all files
   const clearAllFiles = () => {
     setAttachedFiles([]);
+  };
+
+  // Get file IDs for sending in chat requests
+  const getFileIds = () => {
+    return attachedFiles
+      .filter(file => file.id) // Only include files that have been uploaded and have IDs
+      .map(file => file.id!);
   };
 
   // Update file with remote path
@@ -115,6 +137,7 @@ export const useFileUpload = () => {
     addFiles,
     removeFile,
     clearAllFiles,
+    getFileIds,
     updateFileWithRemotePath,
     updateFilesWithRemotePaths
   };

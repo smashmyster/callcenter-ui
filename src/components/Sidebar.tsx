@@ -2,17 +2,21 @@
 
 import { clsx } from "clsx";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Conversation } from "@/types";
 
-type Tab = { id: string; label: string; icon?: React.ReactNode };
+type Tab = { id: string; label: string; icon?: React.ReactNode; href: string };
 
-export function Sidebar({ tabs, active, onSelect }: {
-  tabs: Tab[];
-  active: string;
-  onSelect: (id: string) => void;
-}) {
+export function Sidebar({ tabs }: { tabs: Tab[] }) {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const pathname = usePathname();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
+  useEffect(() => {
+    fetch('http://localhost:8787/chat/get-all-conversations').then(res => res.json()).then(data => setConversations(data));
+  }, []);
   return (
     <aside className={`h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       <div className="h-14 flex items-center px-4 justify-between">
@@ -26,12 +30,12 @@ export function Sidebar({ tabs, active, onSelect }: {
       </div>
       <nav className="p-2 space-y-1">
         {tabs.map((t) => (
-          <button
+          <Link
             key={t.id}
-            onClick={() => onSelect(t.id)}
+            href={t.href}
             className={clsx(
               "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-200",
-              active === t.id
+              pathname === t.href
                 ? "bg-[#303030] text-white"
                 : "hover:bg-[#303030] text-gray-300",
               isCollapsed ? "justify-center" : "justify-start"
@@ -40,9 +44,27 @@ export function Sidebar({ tabs, active, onSelect }: {
           >
             {t.icon}
             {!isCollapsed && <span>{t.label}</span>}
-          </button>
+          </Link>
         ))}
       </nav>
+      <div className="p-2 space-y-1">
+        {conversations.map((t) => (
+          <Link
+            key={t.id}
+            href={`/chat/${t.id}`}
+            className={clsx(
+              "w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm transition-all duration-200",
+              pathname === `/chat/${t.id}`
+                ? "bg-[#303030] text-white"
+                : "hover:bg-[#303030] text-gray-300",
+              isCollapsed ? "justify-center" : "justify-start"
+            )}
+            title={isCollapsed ? t.title : undefined}
+          >
+            {!isCollapsed && <span>{t.title}</span>}
+          </Link>
+        ))}
+      </div>
 
     </aside >
   );
