@@ -81,10 +81,11 @@ export const useFileUpload = () => {
     
     // Update the first file with the ID from the server response
     if (result && result.id) {
-      newFiles[0].id = result.id;
-      newFiles[0].remotePath = result.externalPath;
+      // Use type assertion to extend the object so that TS doesn't complain
+      (newFiles[0] as typeof newFiles[0] & { id?: string; remotePath?: string }).id = result.id;
+      (newFiles[0] as typeof newFiles[0] & { id?: string; remotePath?: string }).remotePath = result.externalPath;
     }
-    
+
     setAttachedFiles(prev => [...prev, ...newFiles]);
     return newFiles;
   };
