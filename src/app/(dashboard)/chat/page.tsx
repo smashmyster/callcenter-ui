@@ -110,15 +110,7 @@ export default function ChatPage() {
       </div>
 
       {/* Tools palette */}
-      {toolsOpen && (
-        <ToolsMenu
-          onClose={() => setToolsOpen(false)}
-          onPick={(toolId: string) => {
-            setToolsOpen(false);
-          }}
-          clickPosition={clickPosition}
-        />
-      )}
+     
     </DragDropWrapper>
   );
 }
