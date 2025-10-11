@@ -32,7 +32,7 @@ export default function Markdown({ content, className }: Props) {
           blockquote: ({node, ...props}) => (
             <blockquote className="border-l-4 pl-4 italic opacity-90 my-3" {...props} />
           ),
-          code: ({inline, className, children, ...props}) => {
+          code: ({node, inline, className, children, ...props}: any) => {
             // `rehype-highlight` adds hljs classes automatically
             if (inline) {
               return <code className="px-1 py-0.5 rounded bg-neutral-100" {...props}>{children}</code>;
