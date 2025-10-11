@@ -1,6 +1,9 @@
-import { Plus, Send } from 'lucide-react';
+import { Plus, Send, X } from 'lucide-react';
 import { FileUpload } from './FileUpload';
 import { AttachedFile } from '@/hooks/useFileUpload';
+import { ToolsMenu } from './ToolsMenu';
+import { useState } from 'react';
+import { ETools, ITool } from '@/types';
 
 interface InputBarProps {
   text: string;
@@ -23,8 +26,11 @@ export const InputBar = ({
   isUploading,
   onRemoveFile,
   onClearAllFiles,
-  openTools
 }: InputBarProps) => {
+  const [toolBarOpen, setToolBarOpen] = useState(false)
+  const [toolInUse, setToolInUse] = useState<ITool | null>(null)
+  console.log(toolInUse);
+
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
     // Auto-resize the textarea
@@ -55,15 +61,29 @@ export const InputBar = ({
 
         <div className={`flex items-center ${attachedFiles.length > 0 ? 'mt-2' : ''}`}>
           {/* Left button - Plus */}
-          <button
-            onClick={openTools}
+          {toolBarOpen && <ToolsMenu onClose={() => { setToolBarOpen(false) }} onPick={(tool: ITool) => { setToolInUse(tool); setToolBarOpen(false) }} />
+          }
+         {!toolInUse? <button
+            onClick={() => { setToolBarOpen(!toolBarOpen) }}
 
             className="p-3 text-white hover:bg-gray-700 transition-colors flex-shrink-0"
             aria-label="Add attachment"
           >
             <Plus size={16} />
-          </button>
+          </button>:  
+          <div>
+            <div
+              className="flex items-start gap-1 text-left p-3  rounded-lg bg-[#303030] "
+            >
+              <button onClick={()=>{setToolInUse(null)}} className="pt-1 rounded hover:bg-[#303030]"><X size={16} /></button>
 
+              <toolInUse.icon className="mt-0.5 text-white" size={18} />
+              <div>
+                <div className="text-sm font-medium text-white  ">{toolInUse.label}</div>
+              </div>
+
+            </div>
+          </div>}
           {/* Textarea in the middle */}
           <div className="flex-1 relative">
             <textarea
@@ -89,6 +109,9 @@ export const InputBar = ({
             </button>
           </div>
         </div>
+
+
+
       </div>
     </div>
   );

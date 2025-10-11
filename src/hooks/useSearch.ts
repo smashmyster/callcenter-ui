@@ -1,13 +1,13 @@
 import { useState } from 'react';
+import { InfoSource } from '@/types';
+import { API_BASE_URL } from '@/types/contstants';
 
 export interface SearchResult {
   query: string;
   answer: string;
-  sources: Array<{
-    id: string;
-    title: string;
-    snippet: string;
-  }>;
+  conversationId: string;
+  
+  sources: InfoSource[];
 }
 
 export const useSearch = () => {
@@ -49,7 +49,7 @@ export const useSearch = () => {
     }, 800);
 
     try {
-      const response = await fetch(`http://localhost:8787/chat`, {
+      const response = await fetch(`${API_BASE_URL}/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/types/contstants';
 import { useState } from 'react';
 
 export interface AttachedFile {
@@ -24,7 +25,7 @@ export const useFileUpload = () => {
         formData.append('messageId', messageId);
       }
       
-      const response = await fetch(`http://localhost:8787/speech/uploadFile`, {
+      const response = await fetch(`${API_BASE_URL}/speech/uploadFile`, {
         method: 'POST',
         body: formData
       });
@@ -52,7 +53,7 @@ export const useFileUpload = () => {
         formData.append('files', file);
       });
       
-      const response = await fetch(`http://localhost:8787/speech/uploadFiles`, {
+      const response = await fetch(`${API_BASE_URL}/speech/uploadFiles`, {
         method: 'POST',
         body: formData
       });

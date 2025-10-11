@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Conversation } from "@/types";
+import { API_BASE_URL } from "@/types/contstants";
 
 type Tab = { id: string; label: string; icon?: React.ReactNode; href: string };
 
@@ -15,10 +16,10 @@ export function Sidebar({ tabs }: { tabs: Tab[] }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
-    fetch('http://localhost:8787/chat/get-all-conversations').then(res => res.json()).then(data => setConversations(data));
+    fetch(`${API_BASE_URL}/chat/get-all-conversations`).then(res => res.json()).then(data => setConversations(data));
   }, []);
   return (
-    <aside className={`h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
+    <aside className={`h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} max-h-screen overflow-y-auto`}>
       <div className="h-14 flex items-center px-4 justify-between">
         {!isCollapsed && <div className="font-semibold">Copilot</div>}
         <button

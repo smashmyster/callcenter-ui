@@ -1,3 +1,4 @@
+import { API_BASE_URL } from '@/types/contstants';
 import { useState, useEffect } from 'react';
 
 export interface PolicyDocument {
@@ -30,7 +31,6 @@ export interface DocumentUploadData {
   parentId?: string; // Added parent ID field
 }
 
-const API_BASE_URL = 'http://localhost:8787';
 
 export const useDocuments = () => {
   const [documents, setDocuments] = useState<PolicyDocument[]>([]);

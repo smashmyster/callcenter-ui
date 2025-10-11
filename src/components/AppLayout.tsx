@@ -5,8 +5,8 @@ import { PhoneCall, Search, FileText, Settings, LayoutDashboard } from "lucide-r
 import { Sidebar } from "@/components/Sidebar";
 
 const tabs = [
+  { id: "dashboard", label: "Dashbord", icon: <LayoutDashboard size={18} />, href: "/dashboard" },
   { id: "chat", label: "Chat", icon: <PhoneCall size={18} />, href: "/chat" },
-  { id: "documents", label: "Documents", icon: <LayoutDashboard size={18} />, href: "/documents" },
   { id: "settings", label: "Settings", icon: <Settings size={18} />, href: "/settings" },
 
 ];

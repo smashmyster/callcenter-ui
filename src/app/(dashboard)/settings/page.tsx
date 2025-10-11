@@ -1,4 +1,5 @@
 import { TopBar } from "@/components/TopBar";
+import { API_BASE_URL } from "@/types/contstants";
 
 export default function SettingsPage() {
   return (
@@ -11,7 +12,7 @@ export default function SettingsPage() {
               <div>
                 <input
                   type="text"
-                  defaultValue="http://localhost:8787"
+                  defaultValue={API_BASE_URL}
                   className="w-full mt-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white"
                 />
               </div>

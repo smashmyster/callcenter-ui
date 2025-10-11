@@ -7,6 +7,7 @@ import { DocumentCard } from '@/components/DocumentCard';
 import { SectionHeader } from '@/components/SectionHeader';
 import { FilePicker } from '@/components/FilePicker';
 import { useDocuments, PolicyDocument } from '@/hooks/useDocuments';
+import { useCalls } from '@/hooks/useCalls';
 
 // Policy Document Types enum
 enum PolicyDocumentType {
@@ -72,6 +73,10 @@ export default function DashboardPage() {
     searchDocuments,
     uploadDocument,
   } = useDocuments();
+  const {
+      calls,
+    fetchCalls
+  }=useCalls()
   // Fetch documents on component mount
   useEffect(() => {
     fetchDocuments();

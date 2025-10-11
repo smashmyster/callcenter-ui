@@ -85,7 +85,14 @@ export default function ChatPage() {
       {/* Main content */}
       <div className="flex-1 overflow-auto p-6 relative" style={{ backgroundColor: '#212121' }}>
         <SearchResults
-          searchResults={searchResults}
+          searchResults={searchResults.map((result, index) => ({
+            id: `search-${index}`,
+            conversationId: '',
+            content: result.answer,
+            role: 'assistant' as const,
+            createdAt: new Date(),
+            source: result.sources || []
+          }))}
           thinkingProcess={thinkingProcess}
         />
 
