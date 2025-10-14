@@ -145,9 +145,9 @@ export default function ChatPage() {
       clearAllFiles();
 
       try {
-        const response = await searchDocs(trimmed, conversationId, fileIds);
+        const response: any = await searchDocs(trimmed, conversationId, fileIds);
         if (response) {
-          setChatMessages((prev) => [...prev, response]);
+          setChatMessages((prev) => [...prev, response as Message]);
           if (response.source && response.source.length > 0) {
             setCurrentSources(response.source);
           }

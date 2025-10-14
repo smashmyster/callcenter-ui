@@ -78,7 +78,7 @@ export default function ChatPage() {
 
     if (trimmed && !isSearching) {
       try {
-        const response = await searchDocs(trimmed);
+        const response: any = await searchDocs(trimmed);
         if (response && response.conversationId) {
           router.push(`/chat/${response.conversationId}`);
         }

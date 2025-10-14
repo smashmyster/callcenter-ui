@@ -60,13 +60,16 @@ export const useFileUpload = () => {
     const result = await uploadFile(files[0], conversationId, messageId);
     console.log("files", files);
     console.log("result", result);
-    
-    // Update the first file with the ID from the server response
-    if (result && result.id) {
-      // Use type assertion to extend the object so that TS doesn't complain
-      (newFiles[0] as typeof newFiles[0] & { id?: string; remotePath?: string }).id = result.id;
-      (newFiles[0] as typeof newFiles[0] & { id?: string; remotePath?: string }).remotePath = result.externalPath;
+
+    // Update the first file with the ID and remotePath from the server response, if available
+    if (result && typeof result === 'object' && 'id' in result) {
+      // It's safe to mutate newFiles[0] since we defined it above
+      (newFiles[0] as { file: File; path: string; id?: string; remotePath?: string }).id = (result as { id: string }).id;
+      if ('externalPath' in result) {
+        (newFiles[0] as { file: File; path: string; id?: string; remotePath?: string }).remotePath = (result as { externalPath?: string }).externalPath;
+      }
     }
+
 
     setAttachedFiles(prev => [...prev, ...newFiles]);
     return newFiles;
