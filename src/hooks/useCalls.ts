@@ -1,6 +1,6 @@
-import { API_BASE_URL } from '@/types/contstants';
 import { useSocket } from '@/context/SocketContext';
 import { useCallback, useEffect, useState } from 'react';
+import { apiClient } from '@/utils/apiClient';
 
 export interface DocumentUploadData {
   title: string;
@@ -23,12 +23,10 @@ export const useCalls = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/speech/all`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch calls');
-      }
-      const data = await response.json();
-      setCalls(Array.isArray(data) ? data : []);
+      const response = await apiClient.get('/speech/all');
+      console.log('response', response);
+      
+      setCalls(Array.isArray(response) ? response : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {

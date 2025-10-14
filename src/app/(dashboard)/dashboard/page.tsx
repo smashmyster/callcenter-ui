@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Search, Bell, Upload, Filter } from 'lucide-react';
+import { Search, Bell, Upload, Filter, Phone, Ticket, FileText } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SectionHeader } from '@/components/SectionHeader';
 import { FilePicker } from '@/components/FilePicker';
+import { CallsTab } from '@/components/CallsTab';
+import { JiraTicketsTab } from '@/components/JiraTicketsTab';
 import { useDocuments, PolicyDocument } from '@/hooks/useDocuments';
 import { useCalls } from '@/hooks/useCalls';
+import { apiClient } from '@/utils/apiClient';
 
 // Policy Document Types enum
 enum PolicyDocumentType {
@@ -57,12 +60,18 @@ const sectionToPolicyType: Record<string, PolicyDocumentType> = {
 };
 
 export default function DashboardPage() {
+  const [activeTab, setActiveTab] = useState<'calls' | 'tickets' | 'documents'>('calls');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('All Types');
   const [filterModified, setFilterModified] = useState('Last Modified');
   const [showFilePicker, setShowFilePicker] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [jiraTickets, setJiraTickets] = useState<any[]>([]);
+  const [ticketsLoading, setTicketsLoading] = useState(false);
+  const [ticketsError, setTicketsError] = useState<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
+
   // Use the documents hook
   const {
     documents,
@@ -74,13 +83,58 @@ export default function DashboardPage() {
     uploadDocument,
   } = useDocuments();
   const {
-      calls,
+    calls,
     fetchCalls
-  }=useCalls()
-  // Fetch documents on component mount
+  } = useCalls();
+  // Fetch all data on component mount
   useEffect(() => {
-    fetchDocuments();
+    const fetchAllData = async () => {
+      setInitialLoading(true);
+      
+      try {
+        // Fetch documents
+        await fetchDocuments();
+        
+        // Fetch calls
+        await fetchCalls();
+        
+        // Fetch Jira tickets
+        setTicketsLoading(true);
+        setTicketsError(null);
+        try {
+          const response = await apiClient.get('/jira-tickets');
+          console.log('response', response);
+          
+          setJiraTickets(response as any || []);
+        } catch (error) {
+          setTicketsError(error instanceof Error ? error.message : 'Failed to fetch tickets');
+        } finally {
+          setTicketsLoading(false);
+        }
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    fetchAllData();
   }, []);
+
+  // Fetch Jira tickets (keep for manual refresh)
+  const fetchJiraTickets = async () => {
+    setTicketsLoading(true);
+    setTicketsError(null);
+    try {
+      const response = await apiClient.get('/jira-tickets');
+      console.log('response', response);
+      
+      setJiraTickets(response as any || []);
+    } catch (error) {
+      setTicketsError(error instanceof Error ? error.message : 'Failed to fetch tickets');
+    } finally {
+      setTicketsLoading(false);
+    }
+  };
+
   // Handle search
   useEffect(() => {
     if (searchTerm.trim()) {
@@ -370,11 +424,22 @@ export default function DashboardPage() {
     }));
   };
 
+  // Show loading state while fetching initial data
+  if (initialLoading) {
+    return (
+      <div className="flex-1 overflow-auto p-6 max-h-[90vh] min-h-[90vh] flex items-center justify-center" style={{ backgroundColor: '#212121' }}>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <p className="text-white text-lg">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      <TopBar title="Dashboard" />
       
-      <div className="flex-1 overflow-auto p-6 min-h-screen" style={{ backgroundColor: '#212121' }}>
+      <div className="flex-1 overflow-auto p-6  max-h-[90vh] min-h-[90vh]" style={{ backgroundColor: '#212121' }}>
         <div className="max-w-6xl mx-auto">
           {/* Welcome Section */}
           <div className="mb-8">
@@ -399,154 +464,216 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Search and Filters */}
-            <div className="flex items-center gap-4 mb-6">
-              <div className="flex-1 relative">
-                <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search documents, policies, and more..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                />
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={filterType}
-                  onChange={(e) => setFilterType(e.target.value)}
-                  className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
-                >
-                  <option>All Types</option>
-                  <option>PDF</option>
-                  <option>DOC</option>
-                  <option>Images</option>
-                </select>
-                <select
-                  value={filterModified}
-                  onChange={(e) => setFilterModified(e.target.value)}
-                  className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
-                >
-                  <option>Last Modified</option>
-                  <option>Recently Added</option>
-                  <option>Alphabetical</option>
-                </select>
-              </div>
+            {/* Tabs */}
+            <div className="flex gap-1 mb-6 bg-gray-800 rounded-lg p-1 ">
+              <button
+                onClick={() => setActiveTab('calls')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'calls'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                <Phone size={16} />
+                Calls ({calls.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('tickets')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'tickets'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                <Ticket size={16} />
+                Jira Tickets ({jiraTickets.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('documents')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                  activeTab === 'documents'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
+                }`}
+              >
+                <FileText size={16} />
+                Documents ({documents.length})
+              </button>
             </div>
+
+            {/* Search and Filters - Only show for documents tab */}
+            {activeTab === 'documents' && (
+              <div className="flex items-center gap-4 mb-6">
+                <div className="flex-1 relative">
+                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search documents, policies, and more..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={filterType}
+                    onChange={(e) => setFilterType(e.target.value)}
+                    className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option>All Types</option>
+                    <option>PDF</option>
+                    <option>DOC</option>
+                    <option>Images</option>
+                  </select>
+                  <select
+                    value={filterModified}
+                    onChange={(e) => setFilterModified(e.target.value)}
+                    className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
+                  >
+                    <option>Last Modified</option>
+                    <option>Recently Added</option>
+                    <option>Alphabetical</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Recently Viewed Section */}
-          <div className="mb-8">
-            <SectionHeader title="Recently Viewed" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {loading || isUploading ? (
-                <div className="col-span-full text-center text-gray-400">
-                  {isUploading ? 'Uploading document...' : 'Loading documents...'}
+          {/* Tab Content */}
+          {activeTab === 'calls' && (
+            <CallsTab 
+              calls={calls}
+              loading={false}
+              error={null}
+              onRefresh={fetchCalls}
+            />
+          )}
+
+          {activeTab === 'tickets' && (
+            <JiraTicketsTab 
+              tickets={jiraTickets}
+              loading={false}
+              error={null}
+              onRefresh={fetchJiraTickets}
+            />
+          )}
+
+          {activeTab === 'documents' && (
+            <>
+              {/* Recently Viewed Section */}
+              <div className="mb-8">
+                <SectionHeader title="Recently Viewed" />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {loading || isUploading ? (
+                    <div className="col-span-full text-center text-gray-400">
+                      {isUploading ? 'Uploading document...' : 'Loading documents...'}
+                    </div>
+                  ) : error ? (
+                    <div className="col-span-full text-center text-red-400">Error: {error}</div>
+                  ) : (
+                    <>
+                      {getRecentlyViewedDocuments().map((doc, index) => (
+                        <DocumentCard
+                          key={doc.id}
+                          title={doc.title}
+                          description={doc.description}
+                          lastModified={doc.lastModified}
+                          icon="document"
+                          fileUrl={doc.fileUrl}
+                          onClick={() => handleCardClick(doc.title)}
+                          onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
+                          onFileReplace={(file) => handleFileReplace(file, doc.title, 'Recently Viewed')}
+                        />
+                      ))}
+                      <DocumentCard
+                        title="Add to Favorites"
+                        description=""
+                        lastModified=""
+                        isAddCard={true}
+                        onFileSelect={() => setShowFilePicker(true)}
+                      />
+                    </>
+                  )}
                 </div>
-              ) : error ? (
-                <div className="col-span-full text-center text-red-400">Error: {error}</div>
-              ) : (
-                <>
-                  {getRecentlyViewedDocuments().map((doc, index) => (
+              </div>
+
+              {/* Policy Documents Section */}
+              <div className="mb-8">
+                <SectionHeader title="Policy Documents" showViewAll={true} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getDocumentsBySection('Policy Documents').map((doc) => (
                     <DocumentCard
                       key={doc.id}
                       title={doc.title}
                       description={doc.description}
                       lastModified={doc.lastModified}
-                      icon="document"
                       fileUrl={doc.fileUrl}
                       onClick={() => handleCardClick(doc.title)}
                       onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
-                      onFileReplace={(file) => handleFileReplace(file, doc.title, 'Recently Viewed')}
+                      onFileReplace={(file) => handleFileReplace(file, doc.title, 'Policy Documents')}
                     />
                   ))}
-                  <DocumentCard
-                    title="Add to Favorites"
-                    description=""
-                    lastModified=""
-                    isAddCard={true}
-                    onFileSelect={() => setShowFilePicker(true)}
-                  />
-                </>
-              )}
-            </div>
-          </div>
+                </div>
+              </div>
 
-          {/* Policy Documents Section */}
-          <div className="mb-8">
-            <SectionHeader title="Policy Documents" showViewAll={true} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getDocumentsBySection('Policy Documents').map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  title={doc.title}
-                  description={doc.description}
-                  lastModified={doc.lastModified}
-                  fileUrl={doc.fileUrl}
-                  onClick={() => handleCardClick(doc.title)}
-                  onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
-                  onFileReplace={(file) => handleFileReplace(file, doc.title, 'Policy Documents')}
-                />
-              ))}
-            </div>
-          </div>
+              {/* HR Documents Section */}
+              <div className="mb-8">
+                <SectionHeader title="HR Documents" showViewAll={true} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getDocumentsBySection('HR Documents').map((doc) => (
+                    <DocumentCard
+                      key={doc.id}
+                      title={doc.title}
+                      description={doc.description}
+                      lastModified={doc.lastModified}
+                      fileUrl={doc.fileUrl}
+                      onClick={() => handleCardClick(doc.title)}
+                      onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
+                      onFileReplace={(file) => handleFileReplace(file, doc.title, 'HR Documents')}
+                    />
+                  ))}
+                </div>
+              </div>
 
-          {/* HR Documents Section */}
-          <div className="mb-8">
-            <SectionHeader title="HR Documents" showViewAll={true} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getDocumentsBySection('HR Documents').map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  title={doc.title}
-                  description={doc.description}
-                  lastModified={doc.lastModified}
-                  fileUrl={doc.fileUrl}
-                  onClick={() => handleCardClick(doc.title)}
-                  onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
-                  onFileReplace={(file) => handleFileReplace(file, doc.title, 'HR Documents')}
-                />
-              ))}
-            </div>
-          </div>
+              {/* Sales Documents Section */}
+              <div className="mb-8">
+                <SectionHeader title="Sales Documents" showViewAll={true} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getDocumentsBySection('Sales Documents').map((doc) => (
+                    <DocumentCard
+                      key={doc.id}
+                      title={doc.title}
+                      description={doc.description}
+                      lastModified={doc.lastModified}
+                      fileUrl={doc.fileUrl}
+                      onClick={() => handleCardClick(doc.title)}
+                      onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
+                      onFileReplace={(file) => handleFileReplace(file, doc.title, 'Sales Documents')}
+                    />
+                  ))}
+                </div>
+              </div>
 
-          {/* Sales Documents Section */}
-          <div className="mb-8">
-            <SectionHeader title="Sales Documents" showViewAll={true} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getDocumentsBySection('Sales Documents').map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  title={doc.title}
-                  description={doc.description}
-                  lastModified={doc.lastModified}
-                  fileUrl={doc.fileUrl}
-                  onClick={() => handleCardClick(doc.title)}
-                  onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
-                  onFileReplace={(file) => handleFileReplace(file, doc.title, 'Sales Documents')}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Engineering Documents Section */}
-          <div className="mb-8">
-            <SectionHeader title="Engineering Documents" showViewAll={true} />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {getDocumentsBySection('Engineering Documents').map((doc) => (
-                <DocumentCard
-                  key={doc.id}
-                  title={doc.title}
-                  description={doc.description}
-                  lastModified={doc.lastModified}
-                  fileUrl={doc.fileUrl}
-                  onClick={() => handleCardClick(doc.title)}
-                  onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
-                  onFileReplace={(file) => handleFileReplace(file, doc.title, 'Engineering Documents')}
-                />
-              ))}
-            </div>
-          </div>
+              {/* Engineering Documents Section */}
+              <div className="mb-8">
+                <SectionHeader title="Engineering Documents" showViewAll={true} />
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {getDocumentsBySection('Engineering Documents').map((doc) => (
+                    <DocumentCard
+                      key={doc.id}
+                      title={doc.title}
+                      description={doc.description}
+                      lastModified={doc.lastModified}
+                      fileUrl={doc.fileUrl}
+                      onClick={() => handleCardClick(doc.title)}
+                      onDownload={doc.isUploaded ? () => handleDownload(doc.fileUrl!, doc.uploadedDoc!.fileName) : undefined}
+                      onFileReplace={(file) => handleFileReplace(file, doc.title, 'Engineering Documents')}
+                    />
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* Selected Files Display */}
           {selectedFiles.length > 0 && (

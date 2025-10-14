@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { API_BASE_URL } from '@/types/contstants';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -69,13 +70,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8 bg-[#1F1F1B]">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        <div className="text-center">
+          <div className="flex justify-center mb-6">
+            <Image
+              src="/logo.png"
+              alt="Company Logo"
+              width={120}
+              height={120}
+              className="object-contain"
+            />
+          </div>
+          <h2 className="text-3xl font-extrabold text-white">
             {isLogin ? 'Sign in to your account' : 'Create your account'}
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button
               type="button"
@@ -96,7 +106,7 @@ export default function LoginPage() {
 
           <div className="space-y-4">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="email" className="block text-sm font-medium text-white">
                 Email address
               </label>
               <input
@@ -106,12 +116,12 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="password" className="block text-sm font-medium text-white">
                 Password
               </label>
               <input
@@ -122,7 +132,7 @@ export default function LoginPage() {
                 minLength={6}
                 value={formData.password}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
               />
             </div>
 
@@ -130,7 +140,7 @@ export default function LoginPage() {
               <>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="firstName" className="block text-sm font-medium text-white">
                       First Name
                     </label>
                     <input
@@ -140,11 +150,11 @@ export default function LoginPage() {
                       required
                       value={formData.firstName}
                       onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
                     />
                   </div>
                   <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                    <label htmlFor="lastName" className="block text-sm font-medium text-white">
                       Last Name
                     </label>
                     <input
@@ -154,13 +164,13 @@ export default function LoginPage() {
                       required
                       value={formData.lastName}
                       onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="phone" className="block text-sm font-medium text-white">
                     Phone (optional)
                   </label>
                   <input
@@ -169,12 +179,12 @@ export default function LoginPage() {
                     type="tel"
                     value={formData.phone}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="organizationName" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="organizationName" className="block text-sm font-medium text-white">
                     Organization Name
                   </label>
                   <input
@@ -189,7 +199,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="organizationDescription" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="organizationDescription" className="block text-sm font-medium text-white">
                     Organization Description (optional)
                   </label>
                   <input
@@ -198,12 +208,12 @@ export default function LoginPage() {
                     type="text"
                     value={formData.organizationDescription}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="organizationDomain" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="organizationDomain" className="block text-sm font-medium text-white">
                     Organization Domain (optional)
                   </label>
                   <input
@@ -213,12 +223,12 @@ export default function LoginPage() {
                     placeholder="company.com"
                     value={formData.organizationDomain}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
                   />
-                </div>
+                </div>  
 
                 <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="role" className="block text-sm font-medium text-white">
                     Role
                   </label>
                   <select
@@ -226,7 +236,7 @@ export default function LoginPage() {
                     name="role"
                     value={formData.role}
                     onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
                   >
                     <option value="user">User</option>
                     <option value="manager">Manager</option>

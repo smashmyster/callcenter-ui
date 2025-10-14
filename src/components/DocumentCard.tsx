@@ -34,13 +34,15 @@ export function DocumentCard({
   const getIcon = () => {
     if (isAddCard) return <Plus size={24} className="text-gray-400" />;
     
+    const iconColor = fileUrl ? 'text-green-400' : 'text-gray-400';
+    
     switch (icon) {
       case 'chart':
-        return <BarChart3 size={20} className="text-gray-400" />;
+        return <BarChart3 size={20} className={iconColor} />;
       case 'image':
-        return <Image size={20} className="text-gray-400" />;
+        return <Image size={20} className={iconColor} />;
       default:
-        return <FileText size={20} className="text-gray-400" />;
+        return <FileText size={20} className={iconColor} />;
     }
   };
 
@@ -96,8 +98,12 @@ export function DocumentCard({
 
   return (
     <div 
-      className={`bg-gray-800 rounded-lg p-4 border border-gray-700 hover:border-gray-600 transition-colors ${
-        isAddCard ? 'border-dashed border-gray-600 hover:border-gray-500 cursor-pointer' : 'cursor-pointer'
+      className={`rounded-lg p-4 border transition-colors ${
+        isAddCard 
+          ? 'bg-gray-800 border-dashed border-gray-600 hover:border-gray-500 cursor-pointer' 
+          : fileUrl 
+            ? 'bg-green-900 border-green-700 hover:border-green-600 cursor-pointer' 
+            : 'bg-gray-800 border-gray-700 hover:border-gray-600 cursor-pointer'
       } ${(isUploading || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
       onClick={handleCardClick}
     >
@@ -108,11 +114,11 @@ export function DocumentCard({
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
-              <h3 className="text-white font-medium text-sm mb-1 truncate">{title}</h3>
+              <h3 className={`font-medium text-sm mb-1 truncate ${fileUrl ? 'text-green-100' : 'text-white'}`}>{title}</h3>
               {!isAddCard && (
                 <>
-                  <p className="text-gray-400 text-xs mb-2 line-clamp-2">{description}</p>
-                  <p className="text-gray-500 text-xs">Edited {lastModified}</p>
+                  <p className={`text-xs mb-2 line-clamp-2 ${fileUrl ? 'text-green-200' : 'text-gray-400'}`}>{description}</p>
+                  <p className={`text-xs ${fileUrl ? 'text-green-300' : 'text-gray-500'}`}>Edited {lastModified}</p>
                 </>
               )}
               {isAddCard && (
