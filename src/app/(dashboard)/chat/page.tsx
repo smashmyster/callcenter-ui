@@ -5,33 +5,80 @@ import { useRouter } from 'next/navigation';
 import { SearchResults } from '@/components/SearchResults';
 import { InputBar } from '@/components/InputBar';
 import { DragDropWrapper } from '@/components/DragDropWrapper';
-import { ToolsMenu } from '@/components/ToolsMenu';
 import { TopBar } from '@/components/TopBar';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useSearch } from '@/hooks/useSearch';
+import { useTools } from '@/hooks/useTools';
+import { ITool, Message, ETools } from '@/types';
 
 export default function ChatPage() {
   const router = useRouter();
   const { searchResults, isSearching, thinkingProcess, searchDocs } = useSearch();
+  const { executeTool, isRunning: isToolRunning } = useTools();
   const {
     attachedFiles,
     isUploading,
     removeFile,
     clearAllFiles,
     addFiles,
+    getFileIds,
   } = useFileUpload();
 
   const [text, setText] = useState("");
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
   const [isDragOver, setIsDragOver] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<ITool | null>(null);
+  const [toolMessages, setToolMessages] = useState<Message[]>([]);
 
   // Handle search with text input
-  const handleSearch = async () => {
-    if (text.trim() && !isSearching) {
+  const handleSend = async (tool?: ITool | null) => {
+    const trimmed = text.trim();
+
+    if (tool) {
+      const fileIds = getFileIds();
+      if (!trimmed && (!fileIds.length || tool.type !== ETools.TRANSCRIBE)) {
+        return;
+      }
+
       try {
-        const response = await searchDocs(text);
-        // Navigate to the conversation page with the conversation ID
+        const response = await executeTool(tool, {
+          input: trimmed || undefined,
+          fileIds,
+        });
+
+        setToolMessages((prev) => [
+          ...prev,
+          {
+            id: `tool-${Date.now()}`,
+            conversationId: '',
+            content: response.message || 'Tool executed.',
+            role: 'assistant',
+            createdAt: new Date(),
+            source: response.sources ?? [],
+          },
+        ]);
+      } catch (error) {
+        setToolMessages((prev) => [
+          ...prev,
+          {
+            id: `tool-error-${Date.now()}`,
+            conversationId: '',
+            content: `Tool failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            role: 'assistant',
+            createdAt: new Date(),
+            source: [],
+          },
+        ]);
+      }
+
+      setSelectedTool(null);
+      setText('');
+      clearAllFiles();
+      return;
+    }
+
+    if (trimmed && !isSearching) {
+      try {
+        const response = await searchDocs(trimmed);
         if (response && response.conversationId) {
           router.push(`/chat/${response.conversationId}`);
         }
@@ -41,14 +88,6 @@ export default function ChatPage() {
       setText('');
       clearAllFiles();
     }
-  };
-
-  // Handle click to open tools menu
-  const handleClick = (e: React.MouseEvent) => {
-    // Capture click position
-    const clickPosition = { x: e.clientX, y: e.clientY };
-    setClickPosition(clickPosition);
-    setToolsOpen(true);
   };
 
   // Drag and drop handlers
@@ -85,27 +124,31 @@ export default function ChatPage() {
       {/* Main content */}
       <div className="flex-1 overflow-auto p-6 relative" style={{ backgroundColor: '#212121' }}>
         <SearchResults
-          searchResults={searchResults.map((result, index) => ({
-            id: `search-${index}`,
-            conversationId: '',
-            content: result.answer,
-            role: 'assistant' as const,
-            createdAt: new Date(),
-            source: result.sources || []
-          }))}
+          searchResults={[
+            ...searchResults.map((result, index) => ({
+              id: `search-${index}`,
+              conversationId: '',
+              content: result.answer,
+              role: 'assistant' as const,
+              createdAt: new Date(),
+              source: result.sources || [],
+            })),
+            ...toolMessages,
+          ]}
           thinkingProcess={thinkingProcess}
         />
 
         <InputBar
           text={text}
           setText={setText}
-          onSend={handleSearch}
-          isSearching={isSearching}
+          onSend={handleSend}
+          isBusy={isSearching || isToolRunning}
           attachedFiles={attachedFiles}
           isUploading={isUploading}
           onRemoveFile={removeFile}
           onClearAllFiles={clearAllFiles}
-          openTools={handleClick}
+          selectedTool={selectedTool}
+          onToolSelected={setSelectedTool}
         />
       </div>
 

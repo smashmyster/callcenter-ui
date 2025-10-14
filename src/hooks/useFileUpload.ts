@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '@/types/contstants';
+import { apiClient } from '@/utils/apiClient';
 import { useState } from 'react';
 
 export interface AttachedFile {
@@ -25,16 +25,7 @@ export const useFileUpload = () => {
         formData.append('messageId', messageId);
       }
       
-      const response = await fetch(`${API_BASE_URL}/speech/uploadFile`, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      
-      const result = await response.json();
+      const result = await apiClient.uploadFile('/speech/uploadFile', formData);
       return result;
     } catch (error) {
       console.error('Upload error:', error);
@@ -53,16 +44,7 @@ export const useFileUpload = () => {
         formData.append('files', file);
       });
       
-      const response = await fetch(`${API_BASE_URL}/speech/uploadFiles`, {
-        method: 'POST',
-        body: formData
-      });
-      
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-      
-      const result = await response.json();
+      const result = await apiClient.uploadFile('/speech/uploadFiles', formData);
       return result;
     } catch (error) {
       console.error('Upload error:', error);

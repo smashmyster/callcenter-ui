@@ -11,7 +11,7 @@ interface ChatMessagesProps {
 
 export const ChatMessages = ({ messages, thinkingProcess, onShowSources }: ChatMessagesProps) => {
   return (
-    <div className="w-full max-h-[78vh] overflow-y-auto">
+    <div className="w-full max-h-[70vh] overflow-y-auto">
       {messages.length > 0 && (
         <div className="max-w-4xl mx-auto space-y-12">
           {messages.map((message, messageIndex) => (

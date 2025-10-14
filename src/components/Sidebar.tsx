@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Conversation } from "@/types";
-import { API_BASE_URL } from "@/types/contstants";
+import { apiClient } from "@/utils/apiClient";
 
 type Tab = { id: string; label: string; icon?: React.ReactNode; href: string };
 
@@ -16,7 +16,12 @@ export function Sidebar({ tabs }: { tabs: Tab[] }) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
 
   useEffect(() => {
-    fetch(`${API_BASE_URL}/chat/get-all-conversations`).then(res => res.json()).then(data => setConversations(data));
+    apiClient.get<Conversation[]>('/chat/get-all-conversations')
+      .then(data => setConversations(data))
+      .catch(error => {
+        console.error('Failed to fetch conversations:', error);
+        setConversations([]);
+      });
   }, []);
   return (
     <aside className={`h-full transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'} max-h-screen overflow-y-auto`}>

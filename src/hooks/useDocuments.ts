@@ -1,5 +1,6 @@
 import { API_BASE_URL } from '@/types/contstants';
-import { useState, useEffect } from 'react';
+import { useSocket } from '@/context/SocketContext';
+import { useCallback, useEffect, useState } from 'react';
 
 export interface PolicyDocument {
   id: string;
@@ -31,14 +32,42 @@ export interface DocumentUploadData {
   parentId?: string; // Added parent ID field
 }
 
+const normalizeDocument = (doc: any): PolicyDocument => {
+  const createdAt =
+    typeof doc?.createdAt === 'string'
+      ? doc.createdAt
+      : new Date(doc?.createdAt ?? Date.now()).toISOString();
+  const updatedAt =
+    typeof doc?.updatedAt === 'string'
+      ? doc.updatedAt
+      : new Date(doc?.updatedAt ?? Date.now()).toISOString();
+
+  return {
+    ...doc,
+    createdAt,
+    updatedAt,
+  } as PolicyDocument;
+};
+
+const sortDocumentsDescending = (docs: PolicyDocument[]) =>
+  [...docs].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
 
 export const useDocuments = () => {
   const [documents, setDocuments] = useState<PolicyDocument[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { socket, lastDataEvent } = useSocket();
 
-  // Fetch all documents
-  const fetchDocuments = async () => { 
+  const upsertDocument = useCallback((incoming: PolicyDocument) => {
+    setDocuments((prev) => {
+      const filtered = prev.filter((doc) => doc.id !== incoming.id);
+      return sortDocumentsDescending([normalizeDocument(incoming), ...filtered]);
+    });
+  }, []);
+
+  const fetchDocuments = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -47,186 +76,190 @@ export const useDocuments = () => {
         throw new Error('Failed to fetch documents');
       }
       const data = await response.json();
-      setDocuments(data);
+      const normalized = data.map(normalizeDocument);
+      setDocuments(sortDocumentsDescending(normalized));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Fetch documents by type
-  const fetchDocumentsByType = async (type: string) => {
+  const fetchDocumentsByType = useCallback(async (type: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/type/${type}`);
+      const response = await fetch(
+        `${API_BASE_URL}/policy-documents/documents/type/${type}`,
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch documents by type');
       }
       const data = await response.json();
-      setDocuments(data);
+      setDocuments(sortDocumentsDescending(data.map(normalizeDocument)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Fetch documents by section
-  const fetchDocumentsBySection = async (section: string) => {
+  const fetchDocumentsBySection = useCallback(async (section: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/section/${section}`);
+      const response = await fetch(
+        `${API_BASE_URL}/policy-documents/documents/section/${section}`,
+      );
       if (!response.ok) {
         throw new Error('Failed to fetch documents by section');
       }
       const data = await response.json();
-      setDocuments(data);
+      setDocuments(sortDocumentsDescending(data.map(normalizeDocument)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Search documents
-  const searchDocuments = async (query: string) => {
+  const searchDocuments = useCallback(async (query: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(
+        `${API_BASE_URL}/policy-documents/documents/search?q=${encodeURIComponent(query)}`,
+      );
       if (!response.ok) {
         throw new Error('Failed to search documents');
       }
       const data = await response.json();
-      setDocuments(data);
+      setDocuments(sortDocumentsDescending(data.map(normalizeDocument)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // Upload document
-  const uploadDocument = async (file: File, uploadData: DocumentUploadData): Promise<PolicyDocument> => {
-    setLoading(true);
-    setError(null);
-    
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('title', uploadData.title);
-      formData.append('description', uploadData.description || '');
-      formData.append('type', uploadData.type);
-      formData.append('uploadedBy', uploadData.uploadedBy || 'user-123');
-      formData.append('version', uploadData.version || '1.0');
-      formData.append('effectiveDate', uploadData.effectiveDate || new Date().toISOString());
-      formData.append('parentId', uploadData.parentId || 'POLICY');
-      
-      if (uploadData.headers) {
-        formData.append('headers', JSON.stringify(uploadData.headers));
+  const uploadDocument = useCallback(
+    async (file: File, uploadData: DocumentUploadData): Promise<PolicyDocument> => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('title', uploadData.title);
+        formData.append('description', uploadData.description || '');
+        formData.append('type', uploadData.type);
+        formData.append('uploadedBy', uploadData.uploadedBy || 'user-123');
+        formData.append('version', uploadData.version || '1.0');
+        formData.append(
+          'effectiveDate',
+          uploadData.effectiveDate || new Date().toISOString(),
+        );
+        formData.append('parentId', uploadData.parentId || 'POLICY');
+
+        if (uploadData.headers) {
+          formData.append('headers', JSON.stringify(uploadData.headers));
+        }
+
+        const response = await fetch(`${API_BASE_URL}/policy-documents/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error('Upload failed');
+        }
+
+        const result = await response.json();
+
+        if (result.document) {
+          upsertDocument(result.document);
+        }
+
+        await fetchDocuments();
+        return normalizeDocument(result.document);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Upload failed');
+        throw err;
+      } finally {
+        setLoading(false);
       }
+    },
+    [fetchDocuments, upsertDocument],
+  );
 
-      const response = await fetch(`${API_BASE_URL}/policy-documents/upload`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
-      }
-
-      const result = await response.json();
-      
-      // Add the new document to the local state
-      if (result.document) {
-        setDocuments(prev => [result.document, ...prev]);
-      }
-      
-      // Also fetch all documents to ensure consistency
-      await fetchDocuments();
-      
-      return result.document;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Get document by ID
-  const getDocumentById = async (id: string): Promise<PolicyDocument | null> => {
+  const getDocumentById = useCallback(async (id: string): Promise<PolicyDocument | null> => {
     try {
       const response = await fetch(`${API_BASE_URL}/policy-documents/documents/${id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch document');
       }
-      return await response.json();
+      return normalizeDocument(await response.json());
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch document');
       return null;
     }
-  };
+  }, []);
 
-  // Update document headers
-  const updateDocumentHeaders = async (id: string, headers: any): Promise<PolicyDocument | null> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/${id}/headers`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ headers }),
-      });
+  const updateDocumentHeaders = useCallback(
+    async (id: string, headers: any): Promise<PolicyDocument | null> => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/policy-documents/documents/${id}/headers`,
+          {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ headers }),
+          },
+        );
 
-      if (!response.ok) {
-        throw new Error('Failed to update document headers');
+        if (!response.ok) {
+          throw new Error('Failed to update document headers');
+        }
+
+        const updatedDocument = normalizeDocument(await response.json());
+        upsertDocument(updatedDocument);
+        return updatedDocument;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update document');
+        return null;
       }
+    },
+    [upsertDocument],
+  );
 
-      const updatedDocument = await response.json();
-      
-      // Update the document in local state
-      setDocuments(prev => 
-        prev.map(doc => doc.id === id ? updatedDocument : doc)
-      );
-      
-      return updatedDocument;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to update document');
-      return null;
-    }
-  };
+  const markDocumentAsProcessed = useCallback(
+    async (id: string): Promise<PolicyDocument | null> => {
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/policy-documents/documents/${id}/processed`,
+          {
+            method: 'PUT',
+          },
+        );
 
-  // Mark document as processed
-  const markDocumentAsProcessed = async (id: string): Promise<PolicyDocument | null> => {
-    try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/${id}/processed`, {
-        method: 'PUT',
-      });
+        if (!response.ok) {
+          throw new Error('Failed to mark document as processed');
+        }
 
-      if (!response.ok) {
-        throw new Error('Failed to mark document as processed');
+        const updatedDocument = normalizeDocument(await response.json());
+        upsertDocument(updatedDocument);
+        return updatedDocument;
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to mark document as processed');
+        return null;
       }
+    },
+    [upsertDocument],
+  );
 
-      const updatedDocument = await response.json();
-      
-      // Update the document in local state
-      setDocuments(prev => 
-        prev.map(doc => doc.id === id ? updatedDocument : doc)
-      );
-      
-      return updatedDocument;
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to mark document as processed');
-      return null;
-    }
-  };
-
-  // Delete document
-  const deleteDocument = async (id: string): Promise<boolean> => {
+  const deleteDocument = useCallback(async (id: string): Promise<boolean> => {
     try {
       const response = await fetch(`${API_BASE_URL}/policy-documents/documents/${id}`, {
         method: 'DELETE',
@@ -236,18 +269,15 @@ export const useDocuments = () => {
         throw new Error('Failed to delete document');
       }
 
-      // Remove the document from local state
-      setDocuments(prev => prev.filter(doc => doc.id !== id));
-      
+      setDocuments((prev) => prev.filter((doc) => doc.id !== id));
       return true;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete document');
       return false;
     }
-  };
+  }, []);
 
-  // Get available document types
-  const getDocumentTypes = async (): Promise<string[]> => {
+  const getDocumentTypes = useCallback(async (): Promise<string[]> => {
     try {
       const response = await fetch(`${API_BASE_URL}/policy-documents/types`);
       if (!response.ok) {
@@ -258,7 +288,45 @@ export const useDocuments = () => {
       setError(err instanceof Error ? err.message : 'Failed to fetch document types');
       return [];
     }
-  };
+  }, []);
+
+  const handleRealtimeDocuments = useCallback(
+    (payload: any) => {
+      if (!payload) {
+        return;
+      }
+      if (Array.isArray(payload.documents)) {
+        setDocuments(sortDocumentsDescending(payload.documents.map(normalizeDocument)));
+        return;
+      }
+      if (payload.document) {
+        upsertDocument(normalizeDocument(payload.document));
+        return;
+      }
+      fetchDocuments();
+    },
+    [fetchDocuments, upsertDocument],
+  );
+
+  useEffect(() => {
+    fetchDocuments();
+  }, [fetchDocuments]);
+
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+    socket.on('documents.updated', handleRealtimeDocuments);
+    return () => {
+      socket.off('documents.updated', handleRealtimeDocuments);
+    };
+  }, [socket, handleRealtimeDocuments]);
+
+  useEffect(() => {
+    if (lastDataEvent?.type === 'documents.updated') {
+      handleRealtimeDocuments(lastDataEvent);
+    }
+  }, [lastDataEvent, handleRealtimeDocuments]);
 
   return {
     documents,

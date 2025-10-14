@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { InfoSource } from '@/types';
-import { API_BASE_URL } from '@/types/contstants';
+import { apiClient } from '@/utils/apiClient';
 
 export interface SearchResult {
   query: string;
@@ -49,23 +49,12 @@ export const useSearch = () => {
     }, 800);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/chat`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: query,
-          conversationId: conversationId,
-          fileNames: fileIds || []
-        })
+      const result = await apiClient.post('/chat', {
+        query: query,
+        conversationId: conversationId,
+        fileNames: fileIds || []
       });
 
-      if (!response.ok) {
-        throw new Error('Search failed');
-      }
-
-      const result = await response.json();
       console.log('Search results:', result);
       
       // Auto-scroll to bottom when result arrives

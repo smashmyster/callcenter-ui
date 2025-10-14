@@ -1,23 +1,24 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import { ChatMessages } from '@/components/ChatMessages';
 import { InputBar } from '@/components/InputBar';
 import { DragDropWrapper } from '@/components/DragDropWrapper';
-import { ToolsMenu } from '@/components/ToolsMenu';
 import { TopBar } from '@/components/TopBar';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useSearch } from '@/hooks/useSearch';
-import { Message } from '@/types';
+import { useTools } from '@/hooks/useTools';
+import { ETools, ITool, Message } from '@/types';
 import { X, ExternalLink, Download, FileText, Volume2 } from 'lucide-react';
-import { API_BASE_URL } from '@/types/contstants';
+import { apiClient } from '@/utils/apiClient';
 
 export default function ChatPage() {
   const params = useParams();
   const conversationId = params.id as string;
 
-  const { searchResults, isSearching, thinkingProcess, searchDocs } = useSearch();
+  const { isSearching, thinkingProcess, searchDocs } = useSearch();
+  const { executeTool, isRunning: isToolRunning } = useTools();
   const {
     attachedFiles,
     isUploading,
@@ -28,65 +29,135 @@ export default function ChatPage() {
   } = useFileUpload();
 
   const [text, setText] = useState("");
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const [clickPosition, setClickPosition] = useState({ x: 0, y: 0 });
   const [isDragOver, setIsDragOver] = useState(false);
   const [chatMessages, setChatMessages] = useState<Message[]>([]);
   const [sourcesPanelOpen, setSourcesPanelOpen] = useState(false);
   const [currentSources, setCurrentSources] = useState<any[]>([]);
   const [selectedMessageId, setSelectedMessageId] = useState<string | null>(null);
+  const [selectedTool, setSelectedTool] = useState<ITool | null>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    fetch(`${API_BASE_URL}/chat/get-conversation-messages?conversationId=${conversationId}`).then(res => res.json()).then(data => setChatMessages(data));
-  }, [conversationId]);
-  // Handle search with text input
-  const handleSearch = async () => {
-    if (text.trim() && !isSearching) {
-      const userMessage = text.trim();
-
-      // Add user message immediately to the chat
-      const tempUserMessage: Message = {
-        id: `temp-${Date.now()}`,
-        conversationId: conversationId,
-        content: userMessage,
-        role: 'user',
-        createdAt: new Date(),
-        source: []
-      };
-      setChatMessages(prev => [...prev, tempUserMessage]);
-
-      // Get file IDs before clearing
-      const fileIds = getFileIds();
-
-      // Clear input and files
-      setText('');
-      clearAllFiles();
-
-      // Send the message and add response to chat
-      try {
-        const response = await searchDocs(userMessage, conversationId, fileIds);
-        // Add the response directly to the chat messages
-        if (response) {
-          setChatMessages(prev => [...prev, response]);
-          // Set sources for the sources panel
-          if (response.source && response.source.length > 0) {
-            setCurrentSources(response.source);
-          }
-        }
-      } catch (error) {
-        console.error('Error sending message:', error);
-        // Remove the temp message if there was an error
-        setChatMessages(prev => prev.filter(msg => msg.id !== tempUserMessage.id));
-      }
+  // Function to scroll to bottom
+  const scrollToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   };
 
-  // Handle click to open tools menu
-  const handleClick = (e: React.MouseEvent) => {
-    // Capture click position
-    const clickPosition = { x: e.clientX, y: e.clientY };
-    setClickPosition(clickPosition);
-    setToolsOpen(true);
+  useEffect(() => {
+    apiClient.get<Message[]>(`/chat/get-conversation-messages?conversationId=${conversationId}`)
+      .then(data => {
+        setChatMessages(data);
+        // Scroll to bottom after messages load
+        setTimeout(scrollToBottom, 100);
+      })
+      .catch(error => {
+        console.error('Failed to fetch conversation messages:', error);
+        setChatMessages([]);
+      });
+  }, [conversationId]);
+
+  // Scroll to bottom when new messages are added
+  useEffect(() => {
+    if (chatMessages.length > 0) {
+      setTimeout(scrollToBottom, 100);
+    }
+  }, [chatMessages]);
+  // Handle search with text input
+  const handleSend = async (tool?: ITool | null) => {
+    const trimmed = text.trim();
+    const fileIds = getFileIds();
+
+    if (tool) {
+      if (!trimmed && (!fileIds.length || tool.type !== ETools.TRANSCRIBE)) {
+        return;
+      }
+
+      let tempUserMessage: Message | null = null;
+      if (trimmed) {
+        tempUserMessage = {
+          id: `temp-${Date.now()}`,
+          conversationId,
+          content: trimmed,
+          role: 'user',
+          createdAt: new Date(),
+          source: [],
+        };
+        setChatMessages((prev) => [...prev, tempUserMessage!]);
+        setTimeout(scrollToBottom, 100);
+      }
+
+      setText('');
+      clearAllFiles();
+
+      try {
+        const response = await executeTool(tool, {
+          input: trimmed || undefined,
+          conversationId,
+          fileIds,
+        });
+
+        const toolMessage: Message = {
+          id: `tool-${Date.now()}`,
+          conversationId,
+          content: response.message || 'Tool executed.',
+          role: 'assistant',
+          createdAt: new Date(),
+          source: response.sources ?? [],
+        };
+
+        setChatMessages((prev) => [...prev, toolMessage]);
+        if (toolMessage.source?.length) {
+          setCurrentSources(toolMessage.source);
+        }
+      } catch (error) {
+        console.error('Tool execution failed:', error);
+        const errorMessage: Message = {
+          id: `tool-error-${Date.now()}`,
+          conversationId,
+          content: `Tool failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          role: 'assistant',
+          createdAt: new Date(),
+          source: [],
+        };
+        setChatMessages((prev) => [...prev, errorMessage]);
+      }
+
+      setSelectedTool(null);
+      setTimeout(scrollToBottom, 100);
+      return;
+    }
+
+    if (trimmed && !isSearching) {
+      const userMessage: Message = {
+        id: `temp-${Date.now()}`,
+        conversationId,
+        content: trimmed,
+        role: 'user',
+        createdAt: new Date(),
+        source: [],
+      };
+      setChatMessages((prev) => [...prev, userMessage]);
+      setTimeout(scrollToBottom, 100);
+
+      setText('');
+      clearAllFiles();
+
+      try {
+        const response = await searchDocs(trimmed, conversationId, fileIds);
+        if (response) {
+          setChatMessages((prev) => [...prev, response]);
+          if (response.source && response.source.length > 0) {
+            setCurrentSources(response.source);
+          }
+          setTimeout(scrollToBottom, 100);
+        }
+      } catch (error) {
+        console.error('Error sending message:', error);
+        setChatMessages((prev) => prev.filter((msg) => msg.id !== userMessage.id));
+      }
+    }
   };
 
   // Drag and drop handlers
@@ -136,26 +207,29 @@ export default function ChatPage() {
       </div>
 
       {/* Main content with sources panel */}
-      <div className="flex-1 flex overflow-hidden" style={{ backgroundColor: '#212121' }}>
+      <div className="flex-1 flex" style={{ backgroundColor: '#212121' }}>
         {/* Main chat area */}
         <div className="flex-1 overflow-auto p-6 relative" style={{ backgroundColor: '#212121' }}>
-          <ChatMessages
-            messages={chatMessages}
-            thinkingProcess={thinkingProcess}
-            onShowSources={handleShowSources}
-          />
+          {/* Chat messages area - scrollable */}
+            <ChatMessages
+              messages={chatMessages}
+              thinkingProcess={thinkingProcess}
+              onShowSources={handleShowSources}
+            />
 
-          <InputBar
-            text={text}
-            setText={setText}
-            onSend={handleSearch}
-            isSearching={isSearching}
-            attachedFiles={attachedFiles}
-            isUploading={isUploading}
-            onRemoveFile={removeFile}
-            onClearAllFiles={clearAllFiles}
-            openTools={handleClick}
-          />
+          {/* Input bar - fixed at bottom */}
+            <InputBar
+              text={text}
+              setText={setText}
+              onSend={handleSend}
+              isBusy={isSearching || isToolRunning}
+              attachedFiles={attachedFiles}
+              isUploading={isUploading}
+              onRemoveFile={removeFile}
+              onClearAllFiles={clearAllFiles}
+              selectedTool={selectedTool}
+              onToolSelected={setSelectedTool}
+            />
         </div>
 
         {/* Sources Panel */}
