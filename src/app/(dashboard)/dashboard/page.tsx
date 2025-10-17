@@ -443,100 +443,284 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto">
           {/* Welcome Section */}
           <div className="mb-8">
-            <div className="flex items-center justify-between mb-6">
-              <h1 className="text-white text-3xl font-bold">Welcome, John!</h1>
-              <div className="flex items-center gap-4">
-                <button className="p-2 text-gray-400 hover:text-white transition-colors">
-                  <Bell size={20} />
-                </button>
-                <button 
-                  onClick={() => setShowFilePicker(true)}
-                  disabled={isUploading}
-                  className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-                    isUploading 
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                      : 'bg-green-600 hover:bg-green-700 text-white'
-                  }`}
-                >
-                  <Upload size={16} />
-                  {isUploading ? 'Uploading...' : 'Upload Document'}
-                </button>
-              </div>
-            </div>
+            <div className="flex items-center justify-between mb-8">
+  {/* Welcome Section with Gradient Text */}
+  <div className="group">
+    <h1 className="cursor-pointer text-4xl font-bold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent mb-2 transition-all duration-300 group-hover:scale-105">
+      Welcome, John!
+    </h1>
+    <div className="flex items-center gap-2 text-sm text-gray-400">
+      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+      <span>Online • Ready to work</span>
+    </div>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="flex items-center gap-3">
+    {/* Notification Bell with Badge */}
+    <div className="relative group">
+      <button className="cursor-pointer p-3 bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300 hover:scale-110 shadow-lg">
+        <Bell size={20} />
+      </button>
+      {/* Notification Badge */}
+      <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center animate-pulse shadow-lg">
+        0
+      </span>
+    </div>
+
+    {/* Upload Button with Enhanced Design */}
+    <button 
+      onClick={() => setShowFilePicker(true)}
+      disabled={isUploading}
+      className={`cursor-pointer px-5 py-3 rounded-xl flex items-center gap-2 font-semibold transition-all duration-300 transform relative overflow-hidden group ${
+        isUploading 
+          ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed backdrop-blur-xl border border-gray-600/30' 
+          : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white shadow-lg hover:shadow-2xl hover:scale-105 border border-green-500/20'
+      }`}
+    >
+      {/* Shimmer Effect */}
+      {!isUploading && (
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+        </div>
+      )}
+      
+      {/* Icon with Animation */}
+      <Upload 
+        size={18} 
+        className={`relative z-10 transition-all duration-300 ${
+          isUploading ? 'animate-bounce' : 'group-hover:-translate-y-0.5'
+        }`}
+      />
+      
+      {/* Text */}
+      <span className="relative z-10">
+        {isUploading ? 'Uploading...' : 'Upload Document'}
+      </span>
+
+      {/* Loading Spinner Overlay */}
+      {isUploading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-700/80 backdrop-blur-sm">
+          <div className="w-4 h-4 border-2 border-gray-400 border-t-white rounded-full animate-spin"></div>
+        </div>
+      )}
+    </button>
+  </div>
+</div>
+
+<style jsx>{`
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+`}</style>
+
 
             {/* Tabs */}
-            <div className="flex gap-1 mb-6 bg-gray-800 rounded-lg p-1 ">
-              <button
-                onClick={() => setActiveTab('calls')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'calls'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-              >
-                <Phone size={16} />
-                Calls ({calls.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('tickets')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'tickets'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-              >
-                <Ticket size={16} />
-                Jira Tickets ({jiraTickets.length})
-              </button>
-              <button
-                onClick={() => setActiveTab('documents')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                  activeTab === 'documents'
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-700'
-                }`}
-              >
-                <FileText size={16} />
-                Documents ({documents.length})
-              </button>
-            </div>
+       <div className="flex gap-2 mb-8 bg-white/5 backdrop-blur-2xl rounded-2xl p-2 border border-white/10 shadow-2xl">
+  <button
+    onClick={() => setActiveTab('calls')}
+    className={`cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group ${
+      activeTab === 'calls'
+        ? 'bg-gradient-to-r from-blue-600 to-blue-500 text-white shadow-lg transform scale-105'
+        : 'text-gray-400 hover:text-white hover:bg-white/10'
+    }`}
+  >
+    {/* Active indicator line */}
+    {activeTab === 'calls' && (
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 animate-slideIn"></div>
+    )}
+    
+    {/* Icon with animation */}
+    <Phone 
+      size={18} 
+      className={`transition-transform duration-300 ${
+        activeTab === 'calls' ? 'scale-110' : 'group-hover:scale-110'
+      }`}
+    />
+    
+    <span>Calls</span>
+    
+    {/* Count badge */}
+    <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-300 ${
+      activeTab === 'calls'
+        ? 'bg-white/20 text-white'
+        : 'bg-white/10 text-gray-400 group-hover:bg-white/15 group-hover:text-gray-300'
+    }`}>
+      {calls.length}
+    </span>
+
+    {/* Shimmer effect on hover */}
+    {activeTab !== 'calls' && (
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+      </div>
+    )}
+  </button>
+
+  <button
+    onClick={() => setActiveTab('tickets')}
+    className={`cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group ${
+      activeTab === 'tickets'
+        ? 'bg-gradient-to-r from-purple-600 to-purple-500 text-white shadow-lg transform scale-105'
+        : 'text-gray-400 hover:text-white hover:bg-white/10'
+    }`}
+  >
+    {/* Active indicator line */}
+    {activeTab === 'tickets' && (
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 animate-slideIn"></div>
+    )}
+    
+    {/* Icon with animation */}
+    <Ticket 
+      size={18} 
+      className={`transition-transform duration-300 ${
+        activeTab === 'tickets' ? 'scale-110' : 'group-hover:scale-110'
+      }`}
+    />
+    
+    <span>Jira Tickets</span>
+    
+    {/* Count badge */}
+    <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-300 ${
+      activeTab === 'tickets'
+        ? 'bg-white/20 text-white'
+        : 'bg-white/10 text-gray-400 group-hover:bg-white/15 group-hover:text-gray-300'
+    }`}>
+      {jiraTickets.length}
+    </span>
+
+    {/* Shimmer effect on hover */}
+    {activeTab !== 'tickets' && (
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+      </div>
+    )}
+  </button>
+
+  <button
+    onClick={() => setActiveTab('documents')}
+    className={`cursor-pointer flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden group ${
+      activeTab === 'documents'
+        ? 'bg-gradient-to-r from-green-600 to-emerald-500 text-white shadow-lg transform scale-105'
+        : 'text-gray-400 hover:text-white hover:bg-white/10'
+    }`}
+  >
+    {/* Active indicator line */}
+    {activeTab === 'documents' && (
+      <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 animate-slideIn"></div>
+    )}
+    
+    {/* Icon with animation */}
+    <FileText 
+      size={18} 
+      className={`transition-transform duration-300 ${
+        activeTab === 'documents' ? 'scale-110' : 'group-hover:scale-110'
+      }`}
+    />
+    
+    <span>Documents</span>
+    
+    {/* Count badge */}
+    <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-bold transition-all duration-300 ${
+      activeTab === 'documents'
+        ? 'bg-white/20 text-white'
+        : 'bg-white/10 text-gray-400 group-hover:bg-white/15 group-hover:text-gray-300'
+    }`}>
+      {documents.length}
+    </span>
+
+    {/* Shimmer effect on hover */}
+    {activeTab !== 'documents' && (
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+      </div>
+    )}
+  </button>
+</div>
+
+{/* Add this animation if not already present in your existing styles */}
+<style jsx>{`
+  @keyframes slideIn {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+
+  .animate-slideIn {
+    animation: slideIn 0.3s ease-out;
+  }
+`}</style>
+
 
             {/* Search and Filters - Only show for documents tab */}
             {activeTab === 'documents' && (
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 relative">
-                  <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    placeholder="Search documents, policies, and more..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={filterType}
-                    onChange={(e) => setFilterType(e.target.value)}
-                    className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
-                  >
-                    <option>All Types</option>
-                    <option>PDF</option>
-                    <option>DOC</option>
-                    <option>Images</option>
-                  </select>
-                  <select
-                    value={filterModified}
-                    onChange={(e) => setFilterModified(e.target.value)}
-                    className="px-3 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:border-blue-500"
-                  >
-                    <option>Last Modified</option>
-                    <option>Recently Added</option>
-                    <option>Alphabetical</option>
-                  </select>
-                </div>
-              </div>
-            )}
+  <div className="flex items-center gap-4 mb-8 animate-fadeIn">
+    {/* Search Bar - Enhanced Design Only */}
+    <div className="flex-1 relative group">
+      <Search 
+        size={18} 
+        className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-purple-400 transition-colors duration-300" 
+      />
+      <input
+        type="text"
+        placeholder="Search documents, policies, and more..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full pl-12 pr-4 py-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl text-white placeholder-gray-400 focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300 shadow-lg focus:shadow-2xl"
+      />
+    </div>
+
+    {/* Filter Dropdowns - Enhanced Design Only */}
+    <div className="flex items-center gap-3">
+      <select
+        value={filterType}
+        onChange={(e) => setFilterType(e.target.value)}
+        className="px-4 py-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl text-white text-sm font-medium focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300 cursor-pointer shadow-lg hover:bg-white/10 hover:scale-105"
+      >
+        <option className="bg-gray-900">All Types</option>
+        <option className="bg-gray-900">PDF</option>
+        <option className="bg-gray-900">DOC</option>
+        <option className="bg-gray-900">Images</option>
+      </select>
+
+      <select
+        value={filterModified}
+        onChange={(e) => setFilterModified(e.target.value)}
+        className="px-4 py-4 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-2xl text-white text-sm font-medium focus:outline-none focus:border-purple-500/50 focus:bg-white/10 transition-all duration-300 cursor-pointer shadow-lg hover:bg-white/10 hover:scale-105"
+      >
+        <option className="bg-gray-900">Last Modified</option>
+        <option className="bg-gray-900">Recently Added</option>
+        <option className="bg-gray-900">Alphabetical</option>
+      </select>
+    </div>
+  </div>
+)}
+
+<style jsx>{`
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.4s ease-out;
+  }
+`}</style>
+
           </div>
 
           {/* Tab Content */}
