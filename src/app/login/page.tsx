@@ -33,7 +33,7 @@ export default function LoginPage() {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
       const data = await apiClient.post<{access_token: string, user: any}>(endpoint, formData);
       
-      if (response.ok) {
+      if (data) {
         console.log('Login successful, data:', data);
         login(data.access_token, data.user);
         
@@ -41,7 +41,7 @@ export default function LoginPage() {
         router.push('/dashboard');
       } else {
         console.log('Login failed:', data);
-        setError(data.message || 'An error occurred');
+        setError((data as any).message || 'An error occurred');
       }
     } catch (err) {
       console.log('Login failed:', err);

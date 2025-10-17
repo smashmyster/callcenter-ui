@@ -37,7 +37,7 @@ export default function SettingsPage() {
 
   const loadJiraCredentials = async () => {
     try {
-      const credentials = await apiClient.get('/jira-credentials');
+      const credentials: JiraCredentials = await apiClient.get('/jira-credentials');
       if (credentials) {
         setJiraCredentials({
           jiraUrl: credentials.jiraUrl || '',
@@ -67,8 +67,8 @@ export default function SettingsPage() {
   const loadJiraProjects = async () => {
     setLoading(true);
     try {
-      const projects = await apiClient.get('/jira-tickets/projects');
-      setJiraProjects(projects);
+      const projects: JiraProject[] = await apiClient.get('/jira-tickets/projects');
+      setJiraProjects(projects as JiraProject[]);
     } catch (error) {
       setMessage('Error loading projects: ' + (error as Error).message);
     } finally {

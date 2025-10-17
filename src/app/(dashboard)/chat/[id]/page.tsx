@@ -9,6 +9,7 @@ import { TopBar } from '@/components/TopBar';
 import { useFileUpload } from '@/hooks/useFileUpload';
 import { useSearch } from '@/hooks/useSearch';
 import { useTools } from '@/hooks/useTools';
+import { useSocket } from '@/context/SocketContext';
 import { ETools, ITool, Message } from '@/types';
 import { X, ExternalLink, Download, FileText, Volume2 } from 'lucide-react';
 import { apiClient } from '@/utils/apiClient';
@@ -19,6 +20,7 @@ export default function ChatPage() {
 
   const { isSearching, thinkingProcess, searchDocs } = useSearch();
   const { executeTool, isRunning: isToolRunning } = useTools();
+  const { socket } = useSocket();
   const {
     attachedFiles,
     isUploading,
@@ -45,6 +47,17 @@ export default function ChatPage() {
     }
   };
 
+  // Function to refresh conversation messages
+  const refreshMessages = async () => {
+    try {
+      const data = await apiClient.get<Message[]>(`/chat/get-conversation-messages?conversationId=${conversationId}`);
+      setChatMessages(data);
+      setTimeout(scrollToBottom, 100);
+    } catch (error) {
+      console.error('Failed to refresh conversation messages:', error);
+    }
+  };
+
   useEffect(() => {
     apiClient.get<Message[]>(`/chat/get-conversation-messages?conversationId=${conversationId}`)
       .then(data => {
@@ -64,6 +77,34 @@ export default function ChatPage() {
       setTimeout(scrollToBottom, 100);
     }
   }, [chatMessages]);
+
+  // Listen for socket events to refresh messages
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleConversationMessage = (data: any) => {
+      console.log('Received conversation message:', data);
+      if (data.conversationId === conversationId) {
+        refreshMessages();
+      }
+    };
+
+    const handleConversationUpdated = (data: any) => {
+      console.log('Received conversation updated:', data);
+      if (data.conversationId === conversationId) {
+        refreshMessages();
+      }
+    };
+
+    // Listen for conversation message events
+    socket.on('conversations.message', handleConversationMessage);
+    socket.on('conversations.updated', handleConversationUpdated);
+
+    return () => {
+      socket.off('conversations.message', handleConversationMessage);
+      socket.off('conversations.updated', handleConversationUpdated);
+    };
+  }, [socket, conversationId]);
   // Handle search with text input
   const handleSend = async (tool?: ITool | null) => {
     const trimmed = text.trim();
@@ -98,18 +139,29 @@ export default function ChatPage() {
           fileIds,
         });
 
-        const toolMessage: Message = {
-          id: `tool-${Date.now()}`,
-          conversationId,
-          content: response.message || 'Tool executed.',
-          role: 'assistant',
-          createdAt: new Date(),
-          source: response.sources ?? [],
-        };
+        // With the new approach, the backend saves the tool result as a message
+        // Refresh the conversation messages to get the latest tool result
+        if (conversationId) {
+          console.log('Tool executed successfully, refreshing conversation messages');
+          // Wait a moment for the backend to save the message, then refresh
+          setTimeout(() => {
+            refreshMessages();
+          }, 500);
+        } else {
+          // For cases without conversationId, still add the message manually
+          const toolMessage: Message = {
+            id: `tool-${Date.now()}`,
+            conversationId,
+            content: response.message || 'Tool executed.',
+            role: 'assistant',
+            createdAt: new Date(),
+            source: response.sources ?? [],
+          };
 
-        setChatMessages((prev) => [...prev, toolMessage]);
-        if (toolMessage.source?.length) {
-          setCurrentSources(toolMessage.source);
+          setChatMessages((prev) => [...prev, toolMessage]);
+          if (toolMessage.source?.length) {
+            setCurrentSources(toolMessage.source);
+          }
         }
       } catch (error) {
         console.error('Tool execution failed:', error);

@@ -37,13 +37,26 @@ export const useTools = () => {
     setError(null);
 
     try {
-      const data = await apiClient.post<ToolExecutionResponse>('/tools/execute', {
-        tool: toolType,
-        input: options.input,
+      // Use chat endpoint with selectedTool instead of tools/execute
+      const data = await apiClient.post('/chat', {
+        query: options.input || '',
         conversationId: options.conversationId,
-        fileIds: options.fileIds,
+        fileNames: options.fileIds || [],
+        selectedTool: toolType,
+        toolParams: {
+          input: options.input,
+          fileIds: options.fileIds,
+          query: options.input, // For policy tools
+        }
       });
-      return data;
+
+      // Transform the response to match the expected ToolExecutionResponse format
+      return {
+        tool: toolType,
+        message: (data as any).content || (data as any).answer || 'Tool executed successfully',
+        data: (data as any).data,
+        sources: (data as any).source || (data as any).sources || []
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Tool execution failed';
       setError(message);
