@@ -1,6 +1,6 @@
-import { API_BASE_URL } from '@/types/contstants';
 import { useSocket } from '@/context/SocketContext';
 import { useCallback, useEffect, useState } from 'react';
+import { apiClient } from '@/utils/apiClient';
 
 export interface PolicyDocument {
   id: string;
@@ -71,11 +71,7 @@ export const useDocuments = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch documents');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<PolicyDocument[]>('/policy-documents/documents');
       const normalized = data.map(normalizeDocument);
       setDocuments(sortDocumentsDescending(normalized));
     } catch (err) {
@@ -89,13 +85,7 @@ export const useDocuments = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/policy-documents/documents/type/${type}`,
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch documents by type');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<PolicyDocument[]>(`/policy-documents/documents/type/${type}`);
       setDocuments(sortDocumentsDescending(data.map(normalizeDocument)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -108,13 +98,7 @@ export const useDocuments = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/policy-documents/documents/section/${section}`,
-      );
-      if (!response.ok) {
-        throw new Error('Failed to fetch documents by section');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<PolicyDocument[]>(`/policy-documents/documents/section/${section}`);
       setDocuments(sortDocumentsDescending(data.map(normalizeDocument)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -127,13 +111,7 @@ export const useDocuments = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(
-        `${API_BASE_URL}/policy-documents/documents/search?q=${encodeURIComponent(query)}`,
-      );
-      if (!response.ok) {
-        throw new Error('Failed to search documents');
-      }
-      const data = await response.json();
+      const data = await apiClient.get<PolicyDocument[]>(`/policy-documents/documents/search?q=${encodeURIComponent(query)}`);
       setDocuments(sortDocumentsDescending(data.map(normalizeDocument)));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error');
@@ -165,16 +143,7 @@ export const useDocuments = () => {
           formData.append('headers', JSON.stringify(uploadData.headers));
         }
 
-        const response = await fetch(`${API_BASE_URL}/policy-documents/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error('Upload failed');
-        }
-
-        const result = await response.json();
+        const result = await apiClient.uploadFile<{document: PolicyDocument}>('/policy-documents/upload', formData);
 
         if (result.document) {
           upsertDocument(result.document);
@@ -194,11 +163,8 @@ export const useDocuments = () => {
 
   const getDocumentById = useCallback(async (id: string): Promise<PolicyDocument | null> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/${id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch document');
-      }
-      return normalizeDocument(await response.json());
+      const data = await apiClient.get(`/policy-documents/documents/${id}`);
+      return normalizeDocument(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch document');
       return null;
@@ -208,22 +174,8 @@ export const useDocuments = () => {
   const updateDocumentHeaders = useCallback(
     async (id: string, headers: any): Promise<PolicyDocument | null> => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/policy-documents/documents/${id}/headers`,
-          {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ headers }),
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to update document headers');
-        }
-
-        const updatedDocument = normalizeDocument(await response.json());
+        const data = await apiClient.put(`/policy-documents/documents/${id}/headers`, { headers });
+        const updatedDocument = normalizeDocument(data);
         upsertDocument(updatedDocument);
         return updatedDocument;
       } catch (err) {
@@ -237,18 +189,8 @@ export const useDocuments = () => {
   const markDocumentAsProcessed = useCallback(
     async (id: string): Promise<PolicyDocument | null> => {
       try {
-        const response = await fetch(
-          `${API_BASE_URL}/policy-documents/documents/${id}/processed`,
-          {
-            method: 'PUT',
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to mark document as processed');
-        }
-
-        const updatedDocument = normalizeDocument(await response.json());
+        const data = await apiClient.put(`/policy-documents/documents/${id}/processed`);
+        const updatedDocument = normalizeDocument(data);
         upsertDocument(updatedDocument);
         return updatedDocument;
       } catch (err) {
@@ -261,14 +203,7 @@ export const useDocuments = () => {
 
   const deleteDocument = useCallback(async (id: string): Promise<boolean> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/documents/${id}`, {
-        method: 'DELETE',
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to delete document');
-      }
-
+      await apiClient.delete(`/policy-documents/documents/${id}`);
       setDocuments((prev) => prev.filter((doc) => doc.id !== id));
       return true;
     } catch (err) {
@@ -279,11 +214,7 @@ export const useDocuments = () => {
 
   const getDocumentTypes = useCallback(async (): Promise<string[]> => {
     try {
-      const response = await fetch(`${API_BASE_URL}/policy-documents/types`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch document types');
-      }
-      return await response.json();
+      return await apiClient.get('/policy-documents/types');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch document types');
       return [];
