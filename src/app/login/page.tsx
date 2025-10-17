@@ -42,13 +42,10 @@ export default function LoginPage() {
       const data = await response.json();
       console.log("data", data);
       
-
       if (response.ok) {
         console.log('Login successful, data:', data);
-        // Use AuthContext login function to update state
         login(data.access_token, data.user);
         
-        // Redirect to dashboard
         console.log('Redirecting to dashboard...');
         router.push('/dashboard');
       } else {
@@ -70,194 +67,371 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center  py-12 px-4 sm:px-6 lg:px-8 bg-[#1F1F1B]">
-      <div className="max-w-md w-full space-y-8">
-        <div className="text-center">
-          <div className="flex justify-center mb-6">
-            <Image
-              src="/logo.png"
-              alt="Company Logo"
-              width={120}
-              height={120}
-              className="object-contain"
-            />
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Animated Dark Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-black to-gray-800 animate-gradient"></div>
+      
+      {/* Floating Orbs - Dark Theme */}
+      <div className="absolute top-20 left-20 w-72 h-72 bg-gray-700 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
+      <div className="absolute top-40 right-20 w-72 h-72 bg-gray-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+      <div className="absolute -bottom-8 left-1/2 w-72 h-72 bg-gray-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+
+      {/* Glassmorphism Container */}
+      <div className="max-w-md w-full relative z-10">
+        <div className="backdrop-blur-2xl bg-white/10 border border-white/20 rounded-3xl shadow-2xl p-8 space-y-8">
+          {/* Logo & Header */}
+          <div className="text-center space-y-4">
+            <div className="flex justify-center mb-4">
+              <div className="p-3 bg-white/20 backdrop-blur-xl rounded-2xl border border-white/30 shadow-lg transform hover:scale-105 transition-all duration-300">
+                <Image
+                  src="/logo.png"
+                  alt="Company Logo"
+                  width={80}
+                  height={80}
+                  className="object-contain"
+                />
+              </div>
+            </div>
+            <h2 className="text-4xl font-bold text-white tracking-tight">
+              {isLogin ? 'Welcome Back' : 'Join Us'}
+            </h2>
+            <p className="text-sm text-white/80">
+              {isLogin ? "Don't have an account? " : "Already have an account? "}
+              <button
+                type="button"
+                onClick={() => setIsLogin(!isLogin)}
+                className="cursor-pointer font-semibold text-gray-300 hover:text-white transition-colors duration-200 underline underline-offset-4"
+              >
+                {isLogin ? 'Sign up' : 'Sign in'}
+              </button>
+            </p>
           </div>
-          <h2 className="text-3xl font-extrabold text-white">
-            {isLogin ? 'Sign in to your account' : 'Create your account'}
-          </h2>
-          <p className="mt-2 text-sm text-gray">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button
-              type="button"
-              onClick={() => setIsLogin(!isLogin)}
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              {isLogin ? 'Sign up' : 'Sign in'}
-            </button>
-          </p>
-        </div>
-        
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-white">
-                Email address
-              </label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                required
-                value={formData.email}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-white">
-                Password
-              </label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-                minLength={6}
-                value={formData.password}
-                onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-              />
-            </div>
-
-            {!isLogin && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-white">
-                      First Name
-                    </label>
-                    <input
-                      id="firstName"
-                      name="firstName"
-                      type="text"
-                      required
-                      value={formData.firstName}
-                      onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-white">
-                      Last Name
-                    </label>
-                    <input
-                      id="lastName"
-                      name="lastName"
-                      type="text"
-                      required
-                      value={formData.lastName}
-                      onChange={handleChange}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-white">
-                    Phone (optional)
-                  </label>
-                  <input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="organizationName" className="block text-sm font-medium text-white">
-                    Organization Name
-                  </label>
-                  <input
-                    id="organizationName"
-                    name="organizationName"
-                    type="text"
-                    required
-                    value={formData.organizationName}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="organizationDescription" className="block text-sm font-medium text-white">
-                    Organization Description (optional)
-                  </label>
-                  <input
-                    id="organizationDescription"
-                    name="organizationDescription"
-                    type="text"
-                    value={formData.organizationDescription}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="organizationDomain" className="block text-sm font-medium text-white">
-                    Organization Domain (optional)
-                  </label>
-                  <input
-                    id="organizationDomain"
-                    name="organizationDomain"
-                    type="text"
-                    placeholder="company.com"
-                    value={formData.organizationDomain}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-                  />
-                </div>  
-
-                <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-white">
-                    Role
-                  </label>
-                  <select
-                    id="role"
-                    name="role"
-                    value={formData.role}
-                    onChange={handleChange}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-white"
-                  >
-                    <option value="user">User</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                </div>
-              </>
+          
+          {/* Form */}
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            {error && (
+              <div className="bg-red-500/20 backdrop-blur-xl border border-red-300/30 text-red-100 px-4 py-3 rounded-xl animate-shake">
+                <p className="text-sm font-medium">{error}</p>
+              </div>
             )}
-          </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-            >
-              {loading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Sign up')}
-            </button>
-          </div>
-        </form>
+            <div className="space-y-6">
+              {/* Email Input with Floating Label */}
+              <div className="floating-input-container">
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="floating-input"
+                  placeholder=" "
+                />
+                <label htmlFor="email" className="floating-label">
+                  Email address
+                </label>
+              </div>
+
+              {/* Password Input with Floating Label */}
+              <div className="floating-input-container">
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  minLength={6}
+                  value={formData.password}
+                  onChange={handleChange}
+                  className="floating-input"
+                  placeholder=" "
+                />
+                <label htmlFor="password" className="floating-label">
+                  Password
+                </label>
+              </div>
+
+              {/* Signup Fields */}
+              {!isLogin && (
+                <div className="space-y-6 animate-fadeIn">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="floating-input-container">
+                      <input
+                        id="firstName"
+                        name="firstName"
+                        type="text"
+                        required
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        className="floating-input"
+                        placeholder=" "
+                      />
+                      <label htmlFor="firstName" className="floating-label">
+                        First Name
+                      </label>
+                    </div>
+                    <div className="floating-input-container">
+                      <input
+                        id="lastName"
+                        name="lastName"
+                        type="text"
+                        required
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        className="floating-input"
+                        placeholder=" "
+                      />
+                      <label htmlFor="lastName" className="floating-label">
+                        Last Name
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="floating-input-container">
+                    <input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      className="floating-input"
+                      placeholder=" "
+                    />
+                    <label htmlFor="phone" className="floating-label">
+                      Phone (optional)
+                    </label>
+                  </div>
+
+                  <div className="floating-input-container">
+                    <input
+                      id="organizationName"
+                      name="organizationName"
+                      type="text"
+                      required
+                      value={formData.organizationName}
+                      onChange={handleChange}
+                      className="floating-input"
+                      placeholder=" "
+                    />
+                    <label htmlFor="organizationName" className="floating-label">
+                      Organization Name
+                    </label>
+                  </div>
+
+                  <div className="floating-input-container">
+                    <input
+                      id="organizationDescription"
+                      name="organizationDescription"
+                      type="text"
+                      value={formData.organizationDescription}
+                      onChange={handleChange}
+                      className="floating-input"
+                      placeholder=" "
+                    />
+                    <label htmlFor="organizationDescription" className="floating-label">
+                      Organization Description (optional)
+                    </label>
+                  </div>
+
+                  <div className="floating-input-container">
+                    <input
+                      id="organizationDomain"
+                      name="organizationDomain"
+                      type="text"
+                      value={formData.organizationDomain}
+                      onChange={handleChange}
+                      className="floating-input"
+                      placeholder=" "
+                    />
+                    <label htmlFor="organizationDomain" className="floating-label">
+                      Organization Domain (optional)
+                    </label>
+                  </div>
+
+                  <div className="floating-input-container">
+                    <select
+                      id="role"
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className="floating-input"
+                    >
+                      <option value="user" className="bg-gray-900">User</option>
+                      <option value="manager" className="bg-gray-900">Manager</option>
+                      <option value="admin" className="bg-gray-900">Admin</option>
+                    </select>
+                    <label htmlFor="role" className="floating-label-select">
+                      Role
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                type="submit"
+                disabled={loading}
+                className="cursor-pointer group relative w-full flex justify-center items-center gap-2 py-3.5 px-4 border border-transparent text-base font-bold rounded-xl text-white bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 hover:from-gray-600 hover:via-gray-500 hover:to-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg"
+              >
+                {loading && (
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                )}
+                <span>{loading ? 'Please wait...' : (isLogin ? 'Sign in' : 'Create Account')}</span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
+
+      <style jsx>{`
+        /* Floating Label Container */
+        .floating-input-container {
+          position: relative;
+
+        }
+
+        /* Floating Input Styles */
+        .floating-input {
+          width: 100%;
+          padding: 0.75rem 1rem;
+          background: none;
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          border-radius: 0.75rem;
+          color: white;
+          font-size: 1rem;
+          outline: none;
+          transition: all 0.3s ease;
+        }
+
+        .floating-input:hover {
+          
+        }
+
+        .floating-input:focus {
+          border-color: rgba(156, 163, 175, 0.8);
+          box-shadow: 0 0 0 2px rgba(156, 163, 175, 0.4);
+        }
+
+        /* Floating Label Styles - Positioned OUTSIDE the input */
+        .floating-label {
+          position: absolute;
+          left: 1rem;
+          top: 50%;
+          transform: translateY(-50%);
+          color: rgba(255, 255, 255, 0.6);
+          font-size: 1rem;
+          font-weight: 500;
+          pointer-events: none;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: transparent;
+          padding: 0 0.25rem;
+        }
+
+        /* Label moves ABOVE the input box when focused or filled */
+        .floating-input:focus ~ .floating-label,
+        .floating-input:not(:placeholder-shown) ~ .floating-label {
+          top: 0;
+          left: 0.75rem;
+          transform: translateY(-90%) scale(0.85);
+          color: rgba(255, 255, 255, 0.9);
+          font-weight: 600;
+         
+          padding: 0 0.5rem;
+        }
+
+        /* Special handling for select elements - label always stays above */
+        .floating-label-select {
+          position: absolute;
+          left: 0.75rem;
+          top: 0;
+          transform: translateY(-50%) scale(0.85);
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 1rem;
+          font-weight: 600;
+          pointer-events: none;
+          background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.8) 40%, rgba(0, 0, 0, 0.8) 60%, transparent 60%);
+          padding: 0 0.5rem;
+        }
+
+        select.floating-input {
+          cursor: pointer;
+        }
+
+        @keyframes gradient {
+          0%, 100% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+        }
+
+        @keyframes blob {
+          0%, 100% {
+            transform: translate(0px, 0px) scale(1);
+          }
+          33% {
+            transform: translate(30px, -50px) scale(1.1);
+          }
+          66% {
+            transform: translate(-20px, 20px) scale(0.9);
+          }
+        }
+
+        @keyframes shake {
+          0%, 100% {
+            transform: translateX(0);
+          }
+          10%, 30%, 50%, 70%, 90% {
+            transform: translateX(-5px);
+          }
+          20%, 40%, 60%, 80% {
+            transform: translateX(5px);
+          }
+        }
+
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 15s ease infinite;
+        }
+
+        .animate-blob {
+          animation: blob 7s infinite;
+        }
+
+        .animation-delay-2000 {
+          animation-delay: 2s;
+        }
+
+        .animation-delay-4000 {
+          animation-delay: 4s;
+        }
+
+        .animate-shake {
+          animation: shake 0.5s;
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.5s ease-out;
+        }
+      `}</style>
     </div>
   );
 }
