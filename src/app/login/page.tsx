@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import { API_BASE_URL } from '@/types/contstants';
+import { apiClient } from '@/utils/apiClient';
 import Image from 'next/image';
 
 export default function LoginPage() {
@@ -31,16 +31,7 @@ export default function LoginPage() {
 
     try {
       const endpoint = isLogin ? '/auth/login' : '/auth/register';
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await response.json();
-      console.log("data", data);
+      const data = await apiClient.post<{access_token: string, user: any}>(endpoint, formData);
       
       if (response.ok) {
         console.log('Login successful, data:', data);
@@ -53,7 +44,8 @@ export default function LoginPage() {
         setError(data.message || 'An error occurred');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
+      console.log('Login failed:', err);
+      setError(err instanceof Error ? err.message : 'Network error. Please try again.');
     } finally {
       setLoading(false);
     }

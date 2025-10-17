@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Search, Bell, Upload, Filter, Phone, Ticket, FileText } from 'lucide-react';
+import { Search, Bell, Upload, Filter, Phone, Ticket, FileText, FolderOpen } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { DocumentCard } from '@/components/DocumentCard';
 import { SectionHeader } from '@/components/SectionHeader';
@@ -11,7 +11,7 @@ import { JiraTicketsTab } from '@/components/JiraTicketsTab';
 import { useDocuments, PolicyDocument } from '@/hooks/useDocuments';
 import { useCalls } from '@/hooks/useCalls';
 import { apiClient } from '@/utils/apiClient';
-
+ 
 // Policy Document Types enum
 enum PolicyDocumentType {
   CODE_OF_CONDUCT = 'CODE_OF_CONDUCT',
@@ -71,6 +71,8 @@ export default function DashboardPage() {
   const [ticketsLoading, setTicketsLoading] = useState(false);
   const [ticketsError, setTicketsError] = useState<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcriptionProgress, setTranscriptionProgress] = useState({ current: 0, total: 0 });
 
   // Use the documents hook
   const {
@@ -329,6 +331,60 @@ export default function DashboardPage() {
 
   const handleCardClick = (title: string) => {
     // You can add navigation logic here
+  };
+
+  // Handle folder selection for audio transcription
+  const handleFolderSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsTranscribing(true);
+    
+    try {
+      // Filter for audio files
+      const audioFiles = Array.from(files).filter(file => 
+        file.type.startsWith('audio/') || 
+        ['.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac'].some(ext => 
+          file.name.toLowerCase().endsWith(ext)
+        )
+      );
+
+      if (audioFiles.length === 0) {
+        alert('No audio files found in the selected folder.');
+        return;
+      }
+
+      // Set initial progress
+      setTranscriptionProgress({ current: 0, total: audioFiles.length });
+
+      // Process each audio file
+      for (let i = 0; i < audioFiles.length; i++) {
+        const audioFile = audioFiles[i];
+        const formData = new FormData();
+        formData.append('file', audioFile);
+        
+        // Update progress
+        setTranscriptionProgress({ current: i + 1, total: audioFiles.length });
+        
+        try {
+          await apiClient.uploadFile('/speech/transcribe', formData);
+          console.log(`Transcribed: ${audioFile.name}`);
+        } catch (error) {
+          console.error(`Failed to transcribe ${audioFile.name}:`, error);
+        }
+      }
+
+      // Refresh calls after transcription
+      await fetchCalls();
+      alert(`Successfully processed ${audioFiles.length} audio files for transcription.`);
+      
+    } catch (error) {
+      console.error('Failed to process audio files:', error);
+      alert('Failed to process audio files. Please try again.');
+    } finally {
+      setIsTranscribing(false);
+      setTranscriptionProgress({ current: 0, total: 0 });
+    }
   };
 
   // Get all documents for a section (both uploaded and not uploaded)
@@ -725,12 +781,59 @@ export default function DashboardPage() {
 
           {/* Tab Content */}
           {activeTab === 'calls' && (
-            <CallsTab 
-              calls={calls}
-              loading={false}
-              error={null}
-              onRefresh={fetchCalls}
-            />
+            <>
+              {/* Audio Folder Upload Section */}
+              <div className="mb-6">
+                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">Bulk Audio Transcription</h3>
+                      <p className="text-gray-400 text-sm">
+                        Select a folder containing audio files to transcribe them all at once.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="file"
+                        id="audio-folder-input"
+                        multiple
+                        accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
+                        onChange={handleFolderSelect}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="audio-folder-input"
+                        className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer ${
+                          isTranscribing 
+                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                            : 'bg-blue-600 hover:bg-blue-700 text-white'
+                        }`}
+                      >
+                        <FolderOpen size={16} />
+                        {isTranscribing ? 'Transcribing...' : 'Select Audio Folder'}
+                      </label>
+                      
+                      {/* Progress Indicator */}
+                      {isTranscribing && (
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent"></div>
+                          <span>
+                            {transcriptionProgress.current} of {transcriptionProgress.total}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <CallsTab 
+                calls={calls}
+                loading={false}
+                error={null}
+                onRefresh={fetchCalls}
+              />
+            </>
           )}
 
           {activeTab === 'tickets' && (

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { API_BASE_URL } from '@/types/contstants';
+import { apiClient } from '@/utils/apiClient';
 import { ETools, ITool } from '@/types';
 
 export interface ExecuteToolOptions {
@@ -37,25 +37,12 @@ export const useTools = () => {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/tools/execute`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          tool: toolType,
-          input: options.input,
-          conversationId: options.conversationId,
-          fileIds: options.fileIds,
-        }),
+      const data = await apiClient.post<ToolExecutionResponse>('/tools/execute', {
+        tool: toolType,
+        input: options.input,
+        conversationId: options.conversationId,
+        fileIds: options.fileIds,
       });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(text || 'Tool execution failed');
-      }
-
-      const data = await response.json();
       return data;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Tool execution failed';
