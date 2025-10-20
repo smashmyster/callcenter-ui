@@ -1,7 +1,7 @@
-import { Message } from '@/types';
+import { Message, FileAttachment } from '@/types';
 import { useState } from 'react';
 import Markdown from './Markdown';
-import { FileText, Volume2, Download, ExternalLink } from 'lucide-react';
+import { FileText, Volume2, Download, ExternalLink, Paperclip } from 'lucide-react';
 
 interface ChatMessagesProps {
   messages: Message[];
@@ -10,18 +10,63 @@ interface ChatMessagesProps {
 }
 
 export const ChatMessages = ({ messages, thinkingProcess, onShowSources }: ChatMessagesProps) => {
+  const formatFileSize = (bytes: number): string => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (mimeType: string) => {
+    if (mimeType.startsWith('audio/')) return Volume2;
+    if (mimeType.startsWith('image/')) return FileText;
+    if (mimeType.includes('pdf')) return FileText;
+    if (mimeType.includes('word') || mimeType.includes('document')) return FileText;
+    return FileText;
+  };
+  console.log("messages", messages);
   return (
     <div className="w-full max-h-[70vh] overflow-y-auto">
       {messages.length > 0 && (
         <div className="max-w-4xl mx-auto space-y-12">
-          {messages.map((message, messageIndex) => (
+          {messages.map((message, messageIndex) => {
+            if(message.role === "user") {
+              console.log("message", message);
+            }
+            return (
             <div key={messageIndex} className="space-y-8">
               {/* Query on the right */}
               {message.role === "user" ? (
                 <div className="text-white text-md text-right">
-                  <span className="bg-[#2E2E2E] rounded-xl p-4 inline-block">
-                    <span className=" text-sm">{message.content}</span>
-                  </span>
+                   {message.messageAttachments && message.messageAttachments.length > 0 && (
+                      <div className="mb-3 flex flex-wrap gap-2 justify-end ">
+                        {message.messageAttachments.map((attachment, index) => {
+                          const FileIcon = getFileIcon(attachment.mimeType);
+                          return (
+                            <div key={index} className="flex items-center gap-2 bg-[#111112]rounded-lg px-3 py-2 text-sm hover:bg-gray-600 transition-colors bg-[#2E2E2E] rounded-xl p-4 min-w-[20vh] justify-between">
+                              <FileIcon size={16} className="text-blue-400" />
+                              <div className="flex flex-col">
+                                <span className="text-white font-medium truncate max-w-[200px]">
+                                  {attachment.name}
+                                </span>
+                              
+                              </div>
+                              <button
+                                onClick={() => window.open(attachment.path, '_blank')}
+                                className="ml-2 p-1 rounded hover:bg-gray-600 transition-colors"
+                                title="Download file"
+                              >
+                                <Download size={14} className="text-gray-400" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  <div className="bg-[#2E2E2E] rounded-xl p-4 inline-block max-w-full">
+                    <span className="text-sm">{message.content}</span>
+                  </div>
                 </div>
               ) : (
                 <div>
@@ -44,7 +89,8 @@ export const ChatMessages = ({ messages, thinkingProcess, onShowSources }: ChatM
                 </div>
               )}
             </div>
-          ))}
+          )}
+          )}
         </div>
       )}
 

@@ -124,6 +124,13 @@ export default function ChatPage() {
           role: 'user',
           createdAt: new Date(),
           source: [],
+          messageAttachments: attachedFiles.map(file => ({
+            id: file.id || `temp-${Date.now()}`,
+            name: file.file.name,
+            path: file.remotePath || file.path,
+            type: file.file.type || 'application/octet-stream',
+            mimeType: file.file.type || 'application/octet-stream',
+          }))
         };
         setChatMessages((prev) => [...prev, tempUserMessage!]);
         setTimeout(scrollToBottom, 100);
