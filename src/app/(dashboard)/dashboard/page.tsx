@@ -520,7 +520,7 @@ export default function DashboardPage() {
       </button>
       {/* Notification Badge */}
       <span className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-red-500 to-pink-500 rounded-full text-[10px] font-bold text-white flex items-center justify-center animate-pulse shadow-lg">
-        0
+        {calls.length + jiraTickets.length + documents.length}
       </span>
     </div>
 
@@ -586,10 +586,10 @@ export default function DashboardPage() {
         : 'text-gray-400 hover:text-white hover:bg-white/10'
     }`}
   >
-    {/* Active indicator line */}
+    {/* Active indicator line
     {activeTab === 'calls' && (
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 animate-slideIn"></div>
-    )}
+    )} */}
     
     {/* Icon with animation */}
     <Phone 
@@ -627,9 +627,9 @@ export default function DashboardPage() {
     }`}
   >
     {/* Active indicator line */}
-    {activeTab === 'tickets' && (
+    {/* {activeTab === 'tickets' && (
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 animate-slideIn"></div>
-    )}
+    )} */}
     
     {/* Icon with animation */}
     <Ticket 
@@ -667,9 +667,9 @@ export default function DashboardPage() {
     }`}
   >
     {/* Active indicator line */}
-    {activeTab === 'documents' && (
+    {/* {activeTab === 'documents' && (
       <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/50 animate-slideIn"></div>
-    )}
+    )} */}
     
     {/* Icon with animation */}
     <FileText 
@@ -777,65 +777,94 @@ export default function DashboardPage() {
   }
 `}</style>
 
-          </div>
+      </div>
 
           {/* Tab Content */}
           {activeTab === 'calls' && (
-            <>
-              {/* Audio Folder Upload Section */}
-              <div className="mb-6">
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="text-lg font-semibold text-white mb-2">Bulk Audio Transcription</h3>
-                      <p className="text-gray-400 text-sm">
-                        Select a folder containing audio files to transcribe them all at once.
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="file"
-                        id="audio-folder-input"
-                        multiple
-                        accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
-                        onChange={handleFolderSelect}
-                        className="hidden"
-                      />
-                      <label
-                        htmlFor="audio-folder-input"
-                        className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors cursor-pointer ${
-                          isTranscribing 
-                            ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                            : 'bg-blue-600 hover:bg-blue-700 text-white'
-                        }`}
-                      >
-                        <FolderOpen size={16} />
-                        {isTranscribing ? 'Transcribing...' : 'Select Audio Folder'}
-                      </label>
-                      
-                      {/* Progress Indicator */}
-                      {isTranscribing && (
-                        <div className="flex items-center gap-2 text-sm text-gray-300">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-400 border-t-transparent"></div>
-                          <span>
-                            {transcriptionProgress.current} of {transcriptionProgress.total}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+  <>
+    {/* Audio Folder Upload Section - Enhanced Design */}
+    <div className="mb-8 animate-fadeIn">
+      <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-6 border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 group">
+        <div className="flex items-center justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/30">
+                <FolderOpen size={20} className="text-blue-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Bulk Audio Transcription</h3>
+            </div>
+            <p className="text-gray-400 text-sm leading-relaxed ml-14">
+              Select a folder containing audio files to transcribe them all at once.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <input
+              type="file"
+              id="audio-folder-input"
+              multiple
+              accept="audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac"
+              onChange={handleFolderSelect}
+              className="hidden"
+            />
+            <label
+              htmlFor="audio-folder-input"
+              className={`px-5 py-3 rounded-xl flex items-center gap-2 font-semibold transition-all duration-300 transform relative overflow-hidden group/btn ${
+                isTranscribing 
+                  ? 'bg-gray-700/50 text-gray-500 cursor-not-allowed backdrop-blur-xl border border-gray-600/30' 
+                  : 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-purple-500 text-white shadow-lg hover:shadow-2xl hover:scale-105 cursor-pointer border border-blue-500/20'
+              }`}
+            >
+              {/* Shimmer Effect */}
+              {!isTranscribing && (
+                <div className="absolute inset-0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-500">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-1000"></div>
+                </div>
+              )}
+              
+              <FolderOpen 
+                size={18} 
+                className={`relative z-10 transition-transform duration-300 ${
+                  isTranscribing ? '' : 'group-hover/btn:scale-110'
+                }`}
+              />
+              <span className="relative z-10">
+                {isTranscribing ? 'Transcribing...' : 'Select Audio Folder'}
+              </span>
+            </label>
+            
+            {/* Progress Indicator - Enhanced */}
+            {isTranscribing && (
+              <div className="flex items-center gap-3 px-4 py-2 bg-blue-600/20 backdrop-blur-xl rounded-xl border border-blue-500/30 animate-fadeIn">
+                <div className="relative">
+                  <div className="animate-spin rounded-full h-5 w-5 border-2 border-blue-400 border-t-transparent"></div>
+                  <div className="absolute inset-0 rounded-full bg-blue-500/20 animate-ping"></div>
+                </div>
+                <div className="text-sm font-semibold">
+                  <span className="text-white">{transcriptionProgress.current}</span>
+                  <span className="text-gray-400 mx-1">of</span>
+                  <span className="text-white">{transcriptionProgress.total}</span>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
 
-              <CallsTab 
-                calls={calls}
-                loading={false}
-                error={null}
-                onRefresh={fetchCalls}
-              />
-            </>
-          )}
+        {/* Decorative Bottom Accent Line */}
+        {!isTranscribing && (
+          <div className="mt-4 h-1 bg-gradient-to-r from-blue-600/0 via-blue-600/50 to-blue-600/0 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+        )}
+      </div>
+    </div>
 
+    <CallsTab 
+      calls={calls}
+      loading={false}
+      error={null}
+      onRefresh={fetchCalls}
+    />
+  </>
+)}
           {activeTab === 'tickets' && (
             <JiraTicketsTab 
               tickets={jiraTickets}
