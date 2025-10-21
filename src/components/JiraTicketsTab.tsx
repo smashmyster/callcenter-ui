@@ -267,125 +267,273 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
   }
 
   return (
-    <div className="space-y-6 max-h-[90vh] overflow-y-auto pr-2">
+    <div className="space-y-6">
       {/* Analytics Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Total Tickets</p>
-              <p className="text-2xl font-bold text-white">{tickets.length}</p>
-            </div>
-            <AlertCircle className="text-blue-500" size={24} />
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">Open Tickets</p>
-              <p className="text-2xl font-bold text-white">
-                {tickets.filter(t => t.status.toLowerCase() !== 'done' && t.status.toLowerCase() !== 'closed').length}
-              </p>
-            </div>
-            <Calendar className="text-yellow-500" size={24} />
-          </div>
-        </div>
-
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-400">High Priority</p>
-              <p className="text-2xl font-bold text-white">
-                {tickets.filter(t => t.priority.toLowerCase() === 'high').length}
-              </p>
-            </div>
-            <TrendingUp className="text-red-500" size={24} />
-          </div>
+      <div className=" grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  {/* Total Tickets Card */}
+  <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-6 border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 hover: group relative overflow-hidden">
+    {/* Gradient Background Effect */}
+    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    
+    <div className="cursor-pointer relative z-10 flex items-center justify-between">
+      <div>
+        <p className="text-sm font-semibold text-gray-400 mb-2">Total Tickets</p>
+        <p className="text-4xl font-bold text-white mb-1">{tickets.length}</p>
+        <div className="flex items-center gap-1 text-xs text-blue-400 font-medium">
+          <div className="w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+          <span>All tickets</span>
         </div>
       </div>
+      <div className="p-4 bg-gradient-to-br from-blue-600/20 to-blue-500/20 rounded-2xl border border-blue-500/30 group-hover:scale-110 transition-transform duration-300">
+        <AlertCircle className="text-blue-400" size={28} />
+      </div>
+    </div>
+
+    {/* Bottom Accent Line */}
+    <div className="cursor-pointer absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600/0 via-blue-600 to-blue-600/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+  </div>
+
+  {/* Open Tickets Card */}
+  <div className="cursor-pointer bg-white/5 backdrop-blur-2xl rounded-2xl p-6 border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 hover: group relative overflow-hidden">
+    {/* Gradient Background Effect */}
+    <div className="absolute inset-0 bg-gradient-to-br from-yellow-600/10 to-orange-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    
+    <div className="relative z-10 flex items-center justify-between">
+      <div>
+        <p className="text-sm font-semibold text-gray-400 mb-2">Open Tickets</p>
+        <p className="text-4xl font-bold text-white mb-1">
+          {tickets.filter(t => t.status.toLowerCase() !== 'done' && t.status.toLowerCase() !== 'closed').length}
+        </p>
+        <div className="flex items-center gap-1 text-xs text-yellow-400 font-medium">
+          <div className="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></div>
+          <span>In progress</span>
+        </div>
+      </div>
+      <div className="p-4 bg-gradient-to-br from-yellow-600/20 to-yellow-500/20 rounded-2xl border border-yellow-500/30 group-hover:scale-110 transition-transform duration-300">
+        <Calendar className="text-yellow-400" size={28} />
+      </div>
+    </div>
+
+    {/* Bottom Accent Line */}
+    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-600/0 via-yellow-600 to-yellow-600/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+  </div>
+
+  {/* High Priority Card */}
+  <div className="cursor-pointer bg-white/5 backdrop-blur-2xl rounded-2xl p-6 border border-white/10 shadow-2xl hover:shadow-3xl transition-all duration-300 hover: group relative overflow-hidden">
+    {/* Gradient Background Effect */}
+    <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-pink-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+    
+    <div className="relative z-10 flex items-center justify-between">
+      <div>
+        <p className="text-sm font-semibold text-gray-400 mb-2">High Priority</p>
+        <p className="text-4xl font-bold text-white mb-1">
+          {tickets.filter(t => t.priority.toLowerCase() === 'high').length}
+        </p>
+        <div className="flex items-center gap-1 text-xs text-red-400 font-medium">
+          <div className="w-1.5 h-1.5 bg-red-400 rounded-full animate-pulse"></div>
+          <span>Urgent attention</span>
+        </div>
+      </div>
+      <div className="p-4 bg-gradient-to-br from-red-600/20 to-red-500/20 rounded-2xl border border-red-500/30 group-hover:scale-110 transition-transform duration-300">
+        <TrendingUp className="text-red-400" size={28} />
+      </div>
+    </div>
+
+    {/* Bottom Accent Line */}
+    <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600/0 via-red-600 to-red-600/0 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+  </div>
+</div>
+
 
       {/* Tickets Per Day Chart */}
-      {ticketsPerDay.length > 0 && (
-        <div className="bg-gray-800 rounded-lg p-6 border border-gray-700 mb-8">
-          <h3 className="text-lg font-semibold text-white mb-4">Tickets Created Per Day</h3>
-          <div className="space-y-2">
-            {ticketsPerDay.slice(-7).map((day, index) => (
-              <div key={day.date} className="flex items-center justify-between">
-                <span className="text-sm text-gray-300">{day.date}</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-32 bg-gray-700 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min((day.count / Math.max(...ticketsPerDay.map(d => d.count))) * 100, 100)}%` }}
-                    />
-                  </div>
-                  <span className="text-sm text-white w-8 text-right">{day.count}</span>
-                </div>
+{ticketsPerDay.length > 0 && (
+  <div className="bg-white/5 backdrop-blur-2xl rounded-2xl p-6 border border-white/10 shadow-2xl mb-8 animate-fadeIn">
+    <div className="flex items-center justify-center gap-3 mb-6">
+      <div className="p-2 bg-gradient-to-br from-blue-600/20 to-purple-600/20 rounded-xl border border-blue-500/30">
+        <TrendingUp size={20} className="text-blue-400" />
+      </div>
+      <h3 className="text-xl font-bold text-white">Tickets Created Per Day</h3>
+    </div>
+    
+    <div className="space-y-3 max-w-2xl mx-auto">
+      {ticketsPerDay.slice(-7).map((day, index) => (
+        <div 
+          key={day.date} 
+          className="flex items-center justify-center gap-4 group hover:bg-white/5 p-3 rounded-xl transition-all duration-300"
+          style={{ animationDelay: `${index * 50}ms` }}
+        >
+          <span className="text-sm font-semibold text-gray-300 group-hover:text-white transition-colors w-24 text-center">
+            {day.date}
+          </span>
+          <div className="flex items-center gap-3 flex-1">
+            <div className="flex-1 bg-white/5 rounded-full h-3 overflow-hidden border border-white/10 relative">
+              <div 
+                className="bg-gradient-to-r from-blue-600 to-purple-600 h-3 rounded-full transition-all duration-500 relative overflow-hidden group-hover:shadow-lg"
+                style={{ width: `${Math.min((day.count / Math.max(...ticketsPerDay.map(d => d.count))) * 100, 100)}%` }}
+              >
+                {/* Shimmer effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
               </div>
-            ))}
+            </div>
+            <span className="text-base font-bold text-white w-10 text-center bg-white/10 px-2 py-1 rounded-lg border border-white/20">
+              {day.count}
+            </span>
           </div>
         </div>
-      )}
+      ))}
+    </div>
+  </div>
+)}
+
+<style jsx>{`
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out;
+  }
+`}</style>
+
 
       {/* Filters */}
-      <div className="space-y-4">
-        {/* Status Filters */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Status Filter:</h4>
-          <div className="flex gap-2 flex-wrap">
-            {statusFilters.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setStatusFilter(filter.value)}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  statusFilter === filter.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {filter.label} ({filter.count})
-              </button>
-            ))}
-          </div>
-        </div>
+     <div className="space-y-6">
+  {/* Status Filters */}
+  <div className="animate-fadeIn">
+    <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+      <div className="w-1 h-4 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
+      Status Filter
+    </h4>
+    <div className="flex gap-3 flex-wrap">
+      {statusFilters.map((filter) => (
+        <button
+          key={filter.value}
+          onClick={() => setStatusFilter(filter.value)}
+          className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 transform relative overflow-hidden group ${
+            statusFilter === filter.value
+              ? 'cursor-pointer bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-lg scale-105 border border-blue-500/30'
+              : 'cursor-pointer bg-white/5 backdrop-blur-xl text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 hover:scale-105 hover:shadow-lg'
+          }`}
+        >
+          {/* Shimmer effect on active */}
+          {statusFilter === filter.value && (
+            <div className="absolute inset-0 opacity-50">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>
+            </div>
+          )}
+          
+          <span className="relative z-10 flex items-center gap-2">
+            {filter.label}
+            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+              statusFilter === filter.value
+                ? 'bg-white/20 text-white'
+                : 'bg-white/10 text-gray-400 group-hover:bg-white/15 group-hover:text-gray-300'
+            }`}>
+              {filter.count}
+            </span>
+          </span>
+        </button>
+      ))}
+    </div>
+  </div>
 
-        {/* Priority Filters */}
-        <div>
-          <h4 className="text-sm font-medium text-gray-300 mb-2">Priority Filter:</h4>
-          <div className="flex gap-2 flex-wrap">
-            {priorityFilters.map((filter) => (
-              <button
-                key={filter.value}
-                onClick={() => setPriorityFilter(filter.value)}
-                className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                  priorityFilter === filter.value
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                }`}
-              >
-                {filter.label} ({filter.count})
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+  {/* Priority Filters */}
+  <div className="animate-fadeIn" style={{ animationDelay: '0.1s' }}>
+    <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+      <div className="w-1 h-4 bg-gradient-to-b from-red-500 to-orange-500 rounded-full"></div>
+      Priority Filter
+    </h4>
+    <div className="flex gap-3 flex-wrap">
+      {priorityFilters.map((filter) => (
+        <button
+          key={filter.value}
+          onClick={() => setPriorityFilter(filter.value)}
+          className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 transform relative overflow-hidden group ${
+            priorityFilter === filter.value
+              ? 'cursor-pointer bg-gradient-to-r from-red-600 to-orange-600 text-white shadow-lg scale-105 border border-red-500/30'
+              : 'cursor-pointer bg-white/5 backdrop-blur-xl text-gray-300 hover:text-white hover:bg-white/10 border border-white/10 hover:scale-105 hover:shadow-lg'
+          }`}
+        >
+          {/* Shimmer effect on active */}
+          {priorityFilter === filter.value && (
+            <div className="absolute inset-0 opacity-50">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-shimmer"></div>
+            </div>
+          )}
+          
+          <span className="relative z-10 flex items-center gap-2">
+            {filter.label}
+            <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${
+              priorityFilter === filter.value
+                ? 'bg-white/20 text-white'
+                : 'bg-white/10 text-gray-400 group-hover:bg-white/15 group-hover:text-gray-300'
+            }`}>
+              {filter.count}
+            </span>
+          </span>
+        </button>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style jsx>{`
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(200%);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+`}</style>
+
 
       {/* Tickets Table */}
-      <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+      <div className="bg-white/5 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden animate-fadeIn">
         {filteredTickets.length === 0 ? (
-          <div className="text-center text-gray-400 py-8">
-            No tickets found for the selected filters.
-          </div>
+           <div className="text-center py-16">
+      <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-gray-600/20 to-gray-500/20 rounded-2xl border border-gray-500/30 mb-4">
+        <Ticket size={32} className="text-gray-400" />
+      </div>
+      <p className="text-gray-400 text-lg font-medium">No tickets found for the selected filters.</p>
+      <p className="text-gray-500 text-sm mt-2">Try adjusting your filters to see more results.</p>
+    </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-700">
+              <thead className="bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-pink-600/10 backdrop-blur-xl border-b border-white/20">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     <input 
                       type="checkbox" 
-                      className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded focus:ring-blue-500 focus:ring-2"
+                      className="w-4 h-4 text-blue-600 bg-gray-800 border-gray-600 rounded "
                     />
                   </th>
                   <th 
@@ -440,7 +588,8 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
               </thead>
               <tbody className="divide-y divide-gray-700">
                 {filteredTickets.map((ticket) => (
-                  <tr key={ticket.id} className="hover:bg-gray-700 transition-colors">
+                  <tr key={ticket.id} className="hover:bg-gradient-to-r hover:from-blue-600/5 hover:via-purple-600/5 hover:to-transparent transition-all duration-300">
+                    
                     <td className="px-4 py-4">
                       <input 
                         type="checkbox" 
@@ -448,13 +597,13 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
                       />
                     </td>
                     <td className="px-4 py-4">
-                      <div className="text-sm font-medium text-blue-400">
+                      <div className="text-xs font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-purple-300 transition-all truncate">
                         {ticket.key}
                       </div>
                     </td>
                     <td className="px-4 py-4">
                       <div className="max-w-xs">
-                        <div className="text-sm font-medium text-white truncate">
+                        <div className="text-xs font-semibold text-white truncate group-hover:text-gray-100 transition-colors">
                           {ticket.summary}
                         </div>
                         <div className="text-xs text-gray-400 mt-1 line-clamp-2">
@@ -463,12 +612,12 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
                       </div>
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(ticket.status)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-bold rounded border ${getStatusColor(ticket.status)} transition-all duration-200 group-hover:scale-105 whitespace-nowrap`}>
                         {ticket.status}
                       </span>
                     </td>
                     <td className="px-4 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPriorityColor(ticket.priority)}`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-bold rounded border ${getStatusColor(ticket.status)} transition-all duration-200 group-hover:scale-105 whitespace-nowrap`}>
                         {ticket.priority}
                       </span>
                     </td>
@@ -480,12 +629,12 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
                         <select
                           value={selectedAssignees[ticket.key] || (ticket.assignee?.emailAddress ? users.find(u => u.emailAddress === ticket.assignee?.emailAddress)?.accountId || '' : '')}
                           onChange={(e) => setSelectedAssignees(prev => ({ ...prev, [ticket.key]: e.target.value }))}
-                          className="px-2 py-1 bg-gray-600 border border-gray-500 rounded text-white text-xs focus:outline-none focus:border-blue-500"
+                          className="flex-1 px-2 py-1 bg-white/5 backdrop-blur-xl border border-white/10 rounded text-white text-xs focus:outline-none focus:border-purple-500/50 transition-all duration-200 cursor-pointer hover:bg-white/10 min-w-0"
                           disabled={assigningTicket === ticket.key}
                         >
-                          <option value="">Assign...</option>
+                          <option value="" className='bg-gray-900'>Assign...</option>
                           {users.map((user) => (
-                            <option key={user.accountId} value={user.accountId}>
+                            <option key={user.accountId} className='bg-gray-900' value={user.accountId}>
                               {user.displayName}
                             </option>
                           ))}
@@ -493,7 +642,7 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
                         <button
                           onClick={() => handleAssignTicket(ticket.key, selectedAssignees[ticket.key] || '')}
                           disabled={!isAssignmentNeeded(ticket) || assigningTicket === ticket.key}
-                          className="px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+                          className="cursor-pointer px-2 py-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-xs font-bold rounded disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed transition-all duration-200 hover:scale-105 flex-shrink-0"
                         >
                           {assigningTicket === ticket.key ? '...' : 'Assign'}
                         </button>
@@ -501,7 +650,7 @@ export function JiraTicketsTab({ tickets, loading, error, onRefresh }: JiraTicke
                           href={`https://your-jira-instance.atlassian.net/browse/${ticket.key}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1 text-gray-400 hover:text-white transition-colors"
+                          className="p-1 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded transition-all duration-200 hover:scale-110 border border-white/10 flex-shrink-0"
                         >
                           <ExternalLink size={14} />
                         </a>

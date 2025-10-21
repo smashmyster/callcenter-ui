@@ -98,19 +98,24 @@ export function DocumentCard({
 
   return (
     <div 
-      className={`rounded-lg p-4 border transition-colors ${
+      className={` rounded-xl p-5 border transition-all duration-300 shadow-xl relative select-none
+ ${
         isAddCard 
-          ? 'bg-gray-800 border-dashed border-gray-600 hover:border-gray-500 cursor-pointer' 
+      ? 'bg-gradient-to-br from-white/5 to-gray-800 border-dashed border-gray-600 hover:border-purple-500 hover:bg-gradient-to-tr hover:from-purple-900/10 hover:to-purple-500/10'
           : fileUrl 
-            ? 'bg-green-900 border-green-700 hover:border-green-600 cursor-pointer' 
-            : 'bg-gray-800 border-gray-700 hover:border-gray-600 cursor-pointer'
-      } ${(isUploading || isLoading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+        ? 'bg-gradient-to-br from-green-900/40 to-green-900 border-green-700 hover:border-green-400 hover:shadow-2xl'
+        : 'bg-gradient-to-br from-white/5 to-gray-800 border-gray-700 hover:border-blue-400 hover:shadow-2xl'}
+      } ${(isUploading || isLoading) ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.025] cursor-pointer'}`}
       onClick={handleCardClick}
     >
-      <div className="flex items-start gap-3">
-        <div className="flex-shrink-0">
-          {getIcon()}
-        </div>
+        <div className="pointer-events-none absolute inset-0 rounded-xl overflow-hidden">
+    <span className="absolute left-[-80%] top-0 w-2/3 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent transform skew-x-[-18deg] blur-md opacity-0 group-hover:opacity-100 group-hover:animate-shine" />
+  </div>
+
+      <div className="flex items-start gap-4 relative z-10">
+    <div className={`${isAddCard ? 'bg-gradient-to-br from-purple-600/30 to-indigo-600/20' : fileUrl ? 'bg-green-900/70' : 'bg-gray-700/60'} w-11 h-11 flex items-center justify-center rounded-lg shadow-inner`}>
+      {getIcon()}
+    </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
@@ -156,6 +161,17 @@ export function DocumentCard({
         onChange={handleFileInputChange}
         className="hidden"
       />
+        <style jsx>{`
+    @keyframes shine {
+      0% { left: -80%; opacity: 0; }
+      35% { opacity: 1; }
+      80% { left: 110%; opacity: 0.1; }
+      100% { left: 110%; opacity: 0; }
+    }
+    .group-hover\\:animate-shine:hover span {
+      animation: shine 1s linear forwards;
+    }
+  `}</style>
     </div>
   );
 }
