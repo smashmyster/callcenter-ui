@@ -68,3 +68,4 @@ export const ChatMessages = ({ messages, thinkingProcess, onShowSources }: ChatM
     </div>
   );
 };
+
