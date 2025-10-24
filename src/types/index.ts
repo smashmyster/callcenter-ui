@@ -18,6 +18,24 @@ export interface Message {
     createdAt: Date
     source?: InfoSource[]
     answer?: string
+    attachments?: FileAttachment[]
+    messageAttachments?: MessageAttachment[]
+}
+export interface MessageAttachment {
+    id: string
+    name: string
+    path: string
+    type: string
+    mimeType: string
+}
+
+export interface FileAttachment {
+    id: string
+    originalName: string
+    externalPath: string
+    fileSize: number
+    mimeType: string
+    isProcessed: boolean
 }
 
 export interface InfoSource {
